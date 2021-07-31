@@ -1,0 +1,16 @@
+{
+  "name": "exile-bot-discord",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "author": "Zephyr",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "dotenv": "^10.0.0",
+    "nodemon": "^2.0.12"
+  }
+}
