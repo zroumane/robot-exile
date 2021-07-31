@@ -10,7 +10,7 @@ const client = new Discord.Client();
 client.login(process.env.TOKEN);
 client.on("ready", () => {
   console.log("Connected");
-  client.user.setActivity(`.voice`, { type: "LISTENING" });
+  client.user.setActivity(`.help`, { type: "LISTENING" });
 });
 
 const unRegisterChannel = async (channel) => {
@@ -55,6 +55,14 @@ client.on("message", (msg) => {
       }
       return msg.reply("le channel a bien été supprimé.");
     });
+  }
+
+  if (msg.content.startsWith(".help")) {
+    msg.channel.send(`\`\`\`Commandes :
+    .help
+      : Afficher ce message
+    .voice (add|remove) <Id Channel>
+      : Ajouter ou supprimer un channel de création vocale\`\`\``);
   }
 });
 

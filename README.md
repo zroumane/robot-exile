@@ -6,9 +6,15 @@ Dans `.env`
 
 ```sh
 TOKEN="DISOCRD-BOT-TOKEN"
-DEV_DISCORD_ID="323533373337239563"
+DEV_DISCORD_ID="null"
 ```
 
 ## Usage
 
+```
+Commandes :
 .help
+  : Afficher ce message
+.voice (add|remove) <Id Channel>
+  : Ajouter ou supprimer un channel de création vocale
+```
