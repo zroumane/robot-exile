@@ -1,0 +1,8 @@
+{
+  "ignore": [
+    "databse.json"
+  ],
+  "watch": [
+    "index.js"
+  ]
+}
