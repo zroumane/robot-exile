@@ -1,8 +1,7 @@
-import Discord from "discord.js";
-import { JsonDB } from "node-json-db";
-import { Config } from "node-json-db/dist/lib/JsonDBConfig.js";
-import dotenv from "dotenv";
-dotenv.config();
+const Discord = require("discord.js");
+const { JsonDB } = require("node-json-db");
+const { Config } = require("node-json-db/dist/lib/JsonDBConfig.js");
+require("dotenv").config();
 
 var db = new JsonDB(new Config("database", true, false, "/"));
 
