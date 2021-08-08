@@ -1,6 +1,6 @@
 # Robot Exilé
 
-[Inviter le bot](https://discord.com/oauth2/authorize?client_id=795591898701365308&scope=bot&permissions=16777232)
+[Inviter le bot](https://discord.com/oauth2/authorize?client_id=654074392321458176&scope=bot&permissions=16778256)
 
 Dans `.env`
 

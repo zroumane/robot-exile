@@ -12,16 +12,25 @@ client.on("ready", () => {
   client.user.setActivity(`.help`, { type: "LISTENING" });
 });
 
+const registerGuild = (guild) => {
+  if (!db.exists(`/guilds/${guild.id}`)) {
+    db.push(`/guilds/${guild.id}`, { voice: { init: [], created: [] } });
+  }
+};
+
 const unRegisterChannel = async (channel) => {
   let guildInit = db.getData(`/guilds/${channel.guild.id}/voice/init`);
-  let inInitIndex = guildInit.indexOf(channel.id);
-  let guildChannel = db.getData(`/guilds/${channel.guild.id}/voice/channel`);
-  let inChannelIndex = guildChannel.indexOf(channel.id);
-  if (inInitIndex >= 0) {
-    db.push(`/guilds/${channel.guild.id}/voice/init`, guildInit.splice(inInitIndex, 1), true);
-  } else if (inChannelIndex >= 0) {
-    db.push(`/guilds/${channel.guild.id}/voice/channel`, guildChannel.splice(inChannelIndex, 1), true);
-  }
+  let guildCreated = db.getData(`/guilds/${channel.guild.id}/voice/created`);
+  db.push(
+    `/guilds/${channel.guild.id}/voice/init`,
+    guildInit.filter((c) => c.id != channel.id),
+    true
+  );
+  db.push(
+    `/guilds/${channel.guild.id}/voice/created`,
+    guildCreated.filter((c) => c != channel.id),
+    true
+  );
 };
 
 const checkPermission = (guild, user) => {
@@ -30,7 +39,7 @@ const checkPermission = (guild, user) => {
 };
 
 client.on("guildCreate", function (guild) {
-  db.push(`/guilds/${guild.id}`, { voice: { init: [], channel: [] } });
+  registerGuild(guild);
 });
 
 client.on("guildDelete", function (guild) {
@@ -38,6 +47,7 @@ client.on("guildDelete", function (guild) {
 });
 
 client.on("message", (msg) => {
+  registerGuild(msg.guild);
   if (msg.content.startsWith(".voice")) {
     if (!checkPermission(msg.guild, msg.author)) return msg.reply("vous n'avez pas la permission");
     let args = msg.content.split(" ");
@@ -49,7 +59,7 @@ client.on("message", (msg) => {
     if (!channel || channel.type != "voice") return msg.reply("ce channel est invalide.");
     unRegisterChannel(channel).then(() => {
       if (args[1] == "add") {
-        db.push(`/guilds/${guildId}/voice/init[]`, channel.id);
+        db.push(`/guilds/${guildId}/voice/init[]`, { id: channel.id, prefix: args[3] ?? null });
         return msg.reply("le channel a bien été ajouté.");
       }
       return msg.reply("le channel a bien été supprimé.");
@@ -73,9 +83,10 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   let oldChannel = oldState.channel;
   let newChannel = newState.channel;
   if (newChannel && newChannel != oldChannel) {
-    if (db.getData(`/guilds/${guild.id}/voice/init`).includes(newChannel.id)) {
+    let initChannel = db.getData(`/guilds/${guild.id}/voice/init`).find((c) => c.id === newChannel.id);
+    if (initChannel) {
       guild.channels
-        .create(`Channel de ${member.nickname ?? member.user.username}`, {
+        .create(`${initChannel.prefix ?? ""} de ${member.nickname ?? member.user.username}`, {
           type: "voice",
           permissionOverwrites: [
             {
@@ -87,19 +98,21 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
         })
         .then((c) => {
           member.voice.setChannel(c);
-          db.push(`/guilds/${guild.id}/voice/channel[]`, c.id);
+          db.push(`/guilds/${guild.id}/voice/created[]`, c.id);
         });
     }
   }
 
   if (oldChannel) {
-    let guildChannel = db.getData(`/guilds/${guild.id}/voice/channel`);
-    let inChannelIndex = guildChannel.indexOf(oldChannel.id);
-    if (inChannelIndex < 0) return;
+    let guildChannel = db.getData(`/guilds/${guild.id}/voice/created`);
     if (oldChannel.members.size == 0) {
+      if (!guildChannel.includes(oldChannel.id)) return;
       oldChannel.delete();
-      guildChannel.splice(inChannelIndex, 1);
-      db.push(`/guilds/${guild.id}/voice/channel`, guildChannel, true);
+      db.push(
+        `/guilds/${guild.id}/voice/created`,
+        guildChannel.filter((c) => c != oldChannel.id),
+        true
+      );
     }
   }
 });
