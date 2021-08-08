@@ -86,7 +86,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     let initChannel = db.getData(`/guilds/${guild.id}/voice/init`).find((c) => c.id === newChannel.id);
     if (initChannel) {
       guild.channels
-        .create(`${initChannel.prefix ?? ""} de ${member.nickname ?? member.user.username}`, {
+        .create(`${initChannel.prefix ?? "Salon"} de ${member.nickname ?? member.user.username}`, {
           type: "voice",
           permissionOverwrites: [
             {
