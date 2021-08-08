@@ -70,7 +70,7 @@ client.on("message", (msg) => {
     msg.channel.send(`\`\`\`Commandes :
     .help
       : Afficher ce message
-    .voice (add|remove) <Id Channel>
+    .voice (add|remove) <Id Channel> <?prefix>
       : Ajouter ou supprimer un channel de création vocale\`\`\``);
   }
 });

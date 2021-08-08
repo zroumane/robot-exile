@@ -15,6 +15,6 @@ DEV_DISCORD_ID="null"
 Commandes :
 .help
   : Afficher ce message
-.voice (add|remove) <Id Channel>
+.voice (add|remove) <Id Channel> <?prefix>
   : Ajouter ou supprimer un channel de création vocale
 ```
