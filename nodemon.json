@@ -3,6 +3,6 @@
     "databse.json"
   ],
   "watch": [
-    "index.js"
+    "src/"
   ]
 }
