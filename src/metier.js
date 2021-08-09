@@ -36,13 +36,13 @@ const metierMessageLoop = async (user, channel, row, index) => {
       .awaitMessages((m) => m.author == user, { max: 1, time: 60000 })
       .then((c) => {
         let msg = c.first().content;
-        if (msg == 0) {
+        if (msg == "-1") {
           row["_rawData"][index] = row["_rawData"][index] ?? 0;
           return metierMessageLoop(user, channel, row, index + 1);
         }
         let lvl = parseInt(msg);
         if (isNaN(lvl) || msg < 0 || msg > 200) {
-          channel.send("Vous devez fournir un nombre compris entre 0 et 200. (0 pour passer la question)");
+          channel.send("Vous devez fournir un nombre compris entre 0 et 200. (-1 pour passer la question)");
           return metierMessageLoop(user, channel, row, index);
         }
         row["_rawData"][index] = msg;
