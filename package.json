@@ -7,7 +7,9 @@
   "type": "module",
   "scripts": {
     "dev": "ENV=dev nodemon src/index.js",
-    "start": "ENV=prod node src/index.js"
+    "start": "ENV=prod node src/index.js",
+    "forever": "ENV=prod forever start src/index.js",
+    "stop": "ENV=prod forever stop src/index.js"
   },
   "dependencies": {
     "discord.js": "^13.0.1",
