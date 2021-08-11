@@ -22,7 +22,7 @@ const headerValues = sheet.headerValues;
  * @param {number} index
  */
 const metierMessageLoop = async (user, channel, row, index) => {
-  if (index == 15) {
+  if (index == headerValues.length) {
     row.date = new Date().toISOString().replace("T", " ").replace(".", " ").slice(0, 19);
     row.id = user.id;
     row.pseudo = user.username;
@@ -33,7 +33,7 @@ const metierMessageLoop = async (user, channel, row, index) => {
       `Quel est votre niveau pour le métier ${headerValues[index]} ? (Actuel : ${row["_rawData"][index] ?? 0})`
     );
     channel
-      .awaitMessages((m) => m.author == user, { max: 1, time: 60000 })
+      .awaitMessages({ filter: (m) => m.author == user, max: 1, time: 60000 })
       .then((c) => {
         let msg = c.first().content;
         if (msg == "-1") {
@@ -49,6 +49,7 @@ const metierMessageLoop = async (user, channel, row, index) => {
         return metierMessageLoop(user, channel, row, index + 1);
       })
       .catch(() => {
+        if (row.id == 0) row.delete();
         channel.send("Le temps d'attente est écoulé, l'opperation est annulé.");
       });
   }

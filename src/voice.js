@@ -1,9 +1,4 @@
-import { client, db } from "./index.js";
-
-const checkPermission = (guild, user) => {
-  let member = guild.members.cache.get(user.id);
-  return member.hasPermission("ADMINISTRATOR") || member.id == process.env.ZEPHYR_ID;
-};
+import { client, db, checkPermission } from "./index.js";
 
 const unRegisterChannel = async (channel) => {
   let guildInit = db.getData(`/voice/init`);
@@ -21,14 +16,13 @@ const unRegisterChannel = async (channel) => {
 };
 
 export const voice = (msg) => {
-  if (!checkPermission(msg.guild, msg.author))
-    return msg.reply("vous n'avez pas la permission d'utiliser cette commande.");
+  if (!checkPermission(msg.member)) return;
   let args = msg.content.split(" ");
   if (args[1] != "add" && args[1] != "remove") return msg.reply("argument(s) invalide(s).");
   let channelId = args[2];
   if (!channelId) return msg.reply("vous devez fournir l'identifiant d'un channel.");
   let channel = msg.guild.channels.cache.get(channelId);
-  if (!channel || channel.type != "voice") return msg.reply("ce channel est invalide.");
+  if (!channel || channel.type != "GUILD_VOICE") return msg.reply("ce channel est invalide.");
   unRegisterChannel(channel).then(() => {
     if (args[1] == "add") {
       db.push(`/voice/init[]`, { id: channel.id, prefix: args[3] ?? null });
