@@ -14,6 +14,13 @@ const messages = {
   eventDeleted: "l'événement a bien été supprimé.",
 };
 
+const checkEvent = () => {
+  let events = db.getData("/event/");
+  Object.keys(events).forEach((e) => {
+    if (moment(events[e].date) < moment()) db.delete(`/event/${e}/`);
+  });
+};
+
 const getDate = (str) => {
   let date = moment(str.trim(), "DD-MM hh:mm");
   if (!date.isValid) return false;
@@ -25,6 +32,7 @@ const getDate = (str) => {
  * @param {Message} msg
  */
 const setEvent = (event, msg) => {
+  checkEvent();
   let embed = msg.embeds[0] ?? new MessageEmbed();
   embed.setTitle(`Event : ${event.name}`);
   let date = moment(event.date);
@@ -41,6 +49,7 @@ const setEvent = (event, msg) => {
  * @param {Message} msg
  */
 export const event = async (msg) => {
+  checkEvent();
   if (!checkPermission(msg.member)) return;
   let args = msg.content.split('"');
   if (args.length < 5) return msg.reply(messages.invalidArgument);
@@ -104,6 +113,7 @@ client.on("messageReactionRemove", async (reaction, user) => {
  * @param {Message} msg
  */
 export const update = async (msg) => {
+  checkEvent();
   if (!checkPermission(msg.member)) return;
   let args = msg.content.split('"');
   let name, date;
@@ -143,4 +153,22 @@ export const remove = async (msg) => {
   } catch (error) {
     return msg.reply(messages.eventNotFound);
   }
+};
+
+/**
+ * @param {Message} msg
+ */
+export const call = async (msg) => {
+  if (!checkPermission(msg.member)) return;
+  let args = msg.content.split(" ");
+  if (args.length < 2) return msg.reply(messages.invalidArgument);
+  if (!db.exists(`/event/${args[1]}/`)) return msg.reply(messages.eventNotFound);
+  let event = db.getData(`/event/${args[1]}/`);
+  args.splice(0, 2);
+  let str = [`**Event : ${event.name}**`];
+  event.choices.forEach((c) => {
+    if ((args.length == 0 || args.includes(c.emoji)) && c.members.length > 0)
+      str.push(`${c.emoji} : ${c.members.map((m) => `<@${m}>`).join(", ")}`);
+  });
+  return msg.channel.send(str.join("\n"));
 };

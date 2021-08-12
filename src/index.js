@@ -20,13 +20,74 @@ export const client = new Client({
   partials: ["MESSAGE", "CHANNEL", "REACTION"],
 });
 
+const helpEmbed = {
+  title: "Help !",
+  description: `
+    Voice les commandes du 🤖 Exilés. 
+    \`<eventId>\` correspond à l'identifiant du message de l'event
+    \`<channelId>\` correspondent à l'identifiant d'un salon vocal
+    Pour accéder à ces identifiants vous devez activer les options développeurs
+  `,
+  fields: [
+    {
+      name: ".help",
+      value: `
+      Afficher ce message
+      `,
+    },
+    {
+      name: ".métier",
+      value: `
+        Lancer l'opération de référencement de vos métiers NW sur le gdoc
+      `,
+    },
+    {
+      name: ".voice",
+      value: `
+        Création d'un salon de création de salon
+        > \`.voice add <channelId> <prefix>\`
+        Le prefix non obligatoire sera situé dans le nom des salons créés
+        
+        Suppression d'un salon de création de salon
+        > \`.voice remove <channelId>\`
+      `,
+    },
+    {
+      name: ".event",
+      value: `
+      Créer un event
+      > \`.event add <eventId> "Guerre" 25/12 21:30 "tank;DPS;heal" 🛡️ ⚔️ ❤️\`
+
+      Mettre à jour un event
+      > \`.event update <eventId> "Nouveau titre"\`
+      > \`.event update <eventId> 23/06 19:00"\`
+
+      Supprimer un event
+      > \`.event remove <eventId>\`
+      `,
+    },
+    {
+      name: ".Call",
+      value: `
+        Mentionner les membres participants à un event
+        > \`.call <eventId>\`
+        > \`.call <eventId> ✅\` 
+      `,
+    },
+    {
+      name: "Crédit",
+      value: `Bot développé par <@${process.env.ZEPHYR_ID}> pour les Exilés !`,
+    },
+  ],
+};
+
 client.login(process.env.ENV == "prod" ? process.env.PROD_TOKEN : process.env.DEV_TOKEN);
 client.on("ready", async () => {
   console.log("Connected");
   client.user.setActivity(`.help`, { type: "LISTENING" });
   let { voice } = await import("./voice.js");
   let { metier } = await import("./metier.js");
-  let { event, update, remove } = await import("./event.js");
+  let { event, update, remove, call } = await import("./event.js");
 
   client.on("messageCreate", (msg) => {
     switch (true) {
@@ -45,8 +106,11 @@ client.on("ready", async () => {
       case msg.content.startsWith(".event remove"): {
         return remove(msg);
       }
+      case msg.content.startsWith(".call"): {
+        return call(msg);
+      }
       case msg.content.startsWith(".help"): {
-        return msg.channel.send("Help message en cours de fabrication");
+        return msg.channel.send({ embeds: [helpEmbed] });
       }
     }
   });
