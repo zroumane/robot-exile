@@ -44,7 +44,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     if (initChannel) {
       guild.channels
         .create(`${initChannel.prefix ?? "Salon"} de ${member.nickname ?? member.user.username}`, {
-          type: "voice",
+          type: "GUILD_VOICE",
           permissionOverwrites: [
             {
               id: member.id,

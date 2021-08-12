@@ -16,6 +16,7 @@ export const client = new Client({
     Intents.FLAGS.GUILD_MESSAGES,
     Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
     Intents.FLAGS.DIRECT_MESSAGES,
+    Intents.FLAGS.GUILD_VOICE_STATES,
   ],
   partials: ["MESSAGE", "CHANNEL", "REACTION"],
 });
@@ -60,14 +61,14 @@ const helpEmbed = {
 
       Mettre à jour un event
       > \`.event update <eventId> "Nouveau titre"\`
-      > \`.event update <eventId> 23/06 19:00"\`
+      > \`.event update <eventId> 23/06 19:00\`
 
       Supprimer un event
       > \`.event remove <eventId>\`
       `,
     },
     {
-      name: ".Call",
+      name: ".call",
       value: `
         Mentionner les membres participants à un event
         > \`.call <eventId>\`
