@@ -1,5 +1,13 @@
 import { client, db, checkPermission } from "./index.js";
 
+const messages = {
+  invalidArgument: "Argument(s) invalide(s).",
+  invalidChannel: "Ce channel est invalide.",
+  channelAdded: "Le channel a bien été ajouté.",
+  channelDeleted: "Le channel a bien été supprimé.",
+  noChannelId: "Vous devez fournir l'identifiant d'un channel.",
+};
+
 const unRegisterChannel = async (channel) => {
   let guildInit = db.getData(`/voice/init`);
   let guildCreated = db.getData(`/voice/created`);
@@ -18,17 +26,17 @@ const unRegisterChannel = async (channel) => {
 export const voice = (msg) => {
   if (!checkPermission(msg.member)) return;
   let args = msg.content.split(" ");
-  if (args[1] != "add" && args[1] != "remove") return msg.reply("argument(s) invalide(s).");
+  if (args[1] != "add" && args[1] != "remove") return msg.reply(messages.invalidArgument);
   let channelId = args[2];
-  if (!channelId) return msg.reply("vous devez fournir l'identifiant d'un channel.");
+  if (!channelId) return msg.reply(messages.noChannelId);
   let channel = msg.guild.channels.cache.get(channelId);
-  if (!channel || channel.type != "GUILD_VOICE") return msg.reply("ce channel est invalide.");
+  if (!channel || channel.type != "GUILD_VOICE") return msg.reply(messages.invalidChannel);
   unRegisterChannel(channel).then(() => {
     if (args[1] == "add") {
       db.push(`/voice/init[]`, { id: channel.id, prefix: args[3] ?? null });
-      return msg.reply("le channel a bien été ajouté.");
+      return msg.reply(messages.channelAdded);
     }
-    return msg.reply("le channel a bien été supprimé.");
+    return msg.reply(messages.channelDeleted);
   });
 };
 

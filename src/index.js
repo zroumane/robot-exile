@@ -43,6 +43,12 @@ const helpEmbed = {
       `,
     },
     {
+      name: ".perso",
+      value: `
+        Lancer l'opération de référencement de votre personnage NW sur le gdoc
+      `,
+    },
+    {
       name: ".voice",
       value: `
         Création d'un salon de création de salon
@@ -87,7 +93,7 @@ client.on("ready", async () => {
   console.log("Connected");
   client.user.setActivity(`.help`, { type: "LISTENING" });
   let { voice } = await import("./voice.js");
-  let { metier } = await import("./metier.js");
+  let { gdoc } = await import("./gdoc.js");
   let { event, update, remove, call } = await import("./event.js");
 
   client.on("messageCreate", (msg) => {
@@ -96,7 +102,10 @@ client.on("ready", async () => {
         return voice(msg);
       }
       case msg.content.startsWith(".métier"): {
-        return metier(msg);
+        return gdoc(msg, "métier");
+      }
+      case msg.content.startsWith(".perso"): {
+        return gdoc(msg, "perso");
       }
       case msg.content.startsWith(".event add"): {
         return event(msg);
@@ -123,15 +132,6 @@ client.on("ready", async () => {
  */
 export const checkPermission = (member) => {
   if (member.roles.cache.has(process.env.ADMIN_ID) || member.id == process.env.ZEPHYR_ID) return true;
-  msg.reply("vous n'avez pas la permission d'utiliser cette commande.");
+  msg.reply("Vous n'avez pas la permission d'utiliser cette commande.");
   return false;
 };
-
-//   `\`\`\`Commandes :
-// .help
-// : Afficher ce message
-// .voice (add|remove) <Id Channel> <?prefix>
-// : Ajouter ou supprimer un channel de création vocale
-// .métier
-// : Mettre à jour vos lvl de métiers dans le gdoc\`\`\``);
-//   }

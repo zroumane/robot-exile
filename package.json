@@ -8,7 +8,6 @@
   "scripts": {
     "dev": "ENV=dev nodemon src/index.js",
     "start": "ENV=prod node src/index.js",
-    "forever": "ENV=prod forever start src/index.js",
     "stop": "ENV=prod forever stop src/index.js"
   },
   "dependencies": {

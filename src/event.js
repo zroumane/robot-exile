@@ -5,13 +5,13 @@ import moment from "moment";
 moment.locale("fr");
 
 const messages = {
-  invalidArgument: "argument(s) invalide(s).",
-  wrongDateFormat: "le format de la date est incorecte. (ex: .event nom 23/06 19:45)",
-  maxChoice: "10 est le nombre de choix maximum.",
-  onlyBasicEmojis: "seulement les emojis standart sont autorisés.",
-  eventNotFound: "cet événement n'existe pas.",
-  eventUpdated: "l'événement a bien été modifié.",
-  eventDeleted: "l'événement a bien été supprimé.",
+  invalidArgument: "Argument(s) invalide(s).",
+  wrongDateFormat: "Le format de la date est incorecte. (ex: .event nom 23/06 19:45)",
+  maxChoice: "Le nombre maximum de choix est 10.",
+  onlyBasicEmojis: "Seulement les emojis standart sont autorisés.",
+  eventNotFound: "Cet événement n'existe pas.",
+  eventUpdated: "L'événement a bien été modifié.",
+  eventDeleted: "L'événement a bien été supprimé.",
 };
 
 const checkEvent = () => {
