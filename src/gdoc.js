@@ -10,7 +10,7 @@ const messages = {
   operationEnded: "L'opération est terminée.",
   wrongChannel: "Cette commande est seulement utilisable dans <#%i>",
   countdownEnded: "Le temps d'attente est écoulé, l'opperation est annulé.",
-  dmSend: "Vous allez recevoir un message privée.",
+  dmSend: "Vous allez recevoir un message privé.",
   error: "Une erreur est survenue.",
 };
 
