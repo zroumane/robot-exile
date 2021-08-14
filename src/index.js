@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, Intents, MessageEmbed } from "discord.js";
+import { Client, Guild, GuildMember, Intents, MessageEmbed, MessageAttachment } from "discord.js";
 import { JsonDB } from "node-json-db";
 import { Config } from "node-json-db/dist/lib/JsonDBConfig.js";
 import dotenv from "dotenv";
@@ -122,7 +122,11 @@ client.on("ready", async () => {
       case msg.content.startsWith(".help"): {
         return msg.channel.send({ embeds: [helpEmbed] });
       }
+      case msg.content.startsWith(".raclette"): {
+        return msg.channel.send({ files: [new MessageAttachment("./assets/raclette.gif")] });
+      }
     }
+    if (msg.content.startsWith(`<@!${client.user.id}>`)) return msg.reply("👋🤖");
   });
 });
 
