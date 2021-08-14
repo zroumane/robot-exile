@@ -42,6 +42,7 @@ const messageAwait = async (user, channel, row, questions) => {
     current = current.filter((u) => u != user.id);
     await row.save();
   } else {
+    if (questions[0].prefix) channel.send(questions[0].prefix.split(";").join("\n"));
     channel.send(`${questions[0].question} (Valeur actuelle : ${row["_rawData"][questions[0].column - 1]})`);
     channel
       .awaitMessages({ filter: (m) => m.author == user, max: 1, time: 60000 })
@@ -75,20 +76,20 @@ export const gdoc = async (msg, type) => {
   if (current.find((u) => u == user.id)) return msg.reply(messages.already);
   let data = db.getData("/gdoc/" + type);
   if (msg.channel.id != data.channel) return msg.reply(messages.wrongChannel.replace("%i", data.channel));
-  // try {
-  let questions = q.filter((q) => q.sheet == data.sheet);
-  let rows = await doc.sheetsById[data.sheet].getRows();
-  let row =
-    rows.find((row) => row.id == user.id) ??
-    (await doc.sheetsById[data.sheet].addRow(Array(3 + questions.length).fill(0)));
-  row.id = user.id;
-  row.pseudo = user.username;
-  let channel = await user.createDM();
-  channel.send(messages.welcome.replace("%u", user.username));
-  msg.reply(messages.dmSend);
-  current.push(user.id);
-  messageAwait(user, channel, row, questions);
-  // } catch (e) {
-  //   return msg.reply(messages.error);
-  // }
+  try {
+    let questions = q.filter((q) => q.sheet == data.sheet);
+    let rows = await doc.sheetsById[data.sheet].getRows();
+    let row =
+      rows.find((row) => row.id == user.id) ??
+      (await doc.sheetsById[data.sheet].addRow(Array(3 + questions.length).fill(0)));
+    row.id = user.id;
+    row.pseudo = user.username;
+    let channel = await user.createDM();
+    channel.send(messages.welcome.replace("%u", user.username));
+    msg.reply(messages.dmSend);
+    current.push(user.id);
+    messageAwait(user, channel, row, questions);
+  } catch (e) {
+    return msg.reply(messages.error);
+  }
 };
