@@ -48,19 +48,22 @@ const messageAwait = async (user, channel, row, questions) => {
       .awaitMessages({ filter: (m) => m.author == user, max: 1, time: 60000 })
       .then((collector) => {
         let msg = collector.first().content;
-        let contraint = questions[0].contraint.split("-");
-        let int = parseInt(msg);
-        if (isNaN(int) || int < contraint[0] || int > contraint[1]) {
-          channel.send(messages.invalidAnswer.replace("%l", contraint[0]).replace("%m", contraint[1]));
-          return messageAwait(user, channel, row, questions);
+        if (questions[0].contraint) {
+          let contraint = questions[0].contraint.split("-");
+          msg = parseInt(msg);
+          if (isNaN(msg) || msg < contraint[0] || msg > contraint[1]) {
+            channel.send(messages.invalidAnswer.replace("%l", contraint[0]).replace("%m", contraint[1]));
+            return messageAwait(user, channel, row, questions);
+          }
         }
         row["_rawData"][questions[0].column - 1] = questions[0].replace
-          ? c.find((c) => c.key == questions[0].replace + "-" + int).value
-          : int;
+          ? c.find((c) => c.key == questions[0].replace + "-" + msg).value
+          : ` ${msg}`;
         questions.shift();
         return messageAwait(user, channel, row, questions);
       })
       .catch((e) => {
+        console.log(e);
         if (row.date == 0) row.delete();
         channel.send(messages.countdownEnded);
         current = current.filter((u) => u != user.id);
