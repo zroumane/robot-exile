@@ -22,13 +22,15 @@ export const audio = (msg) => {
 
   if (!checkChannel(msg, data.channel)) return;
 
+  let audio = data.tag;
+
   if (args.length == 1) {
     let reponse =
-      Object.keys(data).length == 0
+      Object.keys(audio).length == 0
         ? "Il n'y a pas d'audio enregistrer."
         : "Voici la liste des fichiers audio :\n" +
-          Object.keys(data)
-            .map((t) => `\`${t}\` : ${data[t]}`)
+          Object.keys(audio)
+            .map((t) => `\`${t}\` : ${audio[t]}`)
             .join("\n");
     return msg.reply(reponse);
   }
@@ -37,23 +39,23 @@ export const audio = (msg) => {
   if (!tag) return msg.reply(messages.notag);
 
   if (tag.startsWith("-")) {
-    if (!data[tag.slice(1)]) return msg.reply(messages.noaudio);
-    db.delete(`/audio/${tag.slice(1)}`);
+    if (!audio[tag.slice(1)]) return msg.reply(messages.noaudio);
+    db.delete(`/audio/tag/${tag.slice(1)}`);
     return msg.reply(messages.deleted);
   }
 
   let file = msg.attachments.first();
   if (file) {
     if (!file.contentType.startsWith("audio")) return msg.reply(messages.incorrectFormat);
-    db.push(`/audio/${tag}`, file.url);
+    db.push(`/audio/tag/${tag}`, file.url);
     return msg.reply(messages.audioAdded.replace("%c", `.audio ${tag}`));
   }
 
   let channel = msg.member.voice.channel;
   if (!channel) return msg.reply(messages.nochannel);
 
-  if (!data[tag]) return msg.reply(messages.noaudio);
-  let url = data[tag];
+  if (!audio[tag]) return msg.reply(messages.noaudio);
+  let url = audio[tag];
 
   let connection = joinVoiceChannel({
     channelId: channel.id,
