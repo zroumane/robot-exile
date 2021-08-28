@@ -50,7 +50,7 @@ const setEvent = (event, msg) => {
  */
 export const event = async (msg) => {
   checkEvent();
-  if (!checkPermission(msg.member)) return;
+  if (!checkPermission(msg)) return;
   let args = msg.content.split('"');
   if (args.length < 5) return msg.reply(messages.invalidArgument);
   let date = getDate(args[2]);
@@ -114,7 +114,7 @@ client.on("messageReactionRemove", async (reaction, user) => {
  */
 export const update = async (msg) => {
   checkEvent();
-  if (!checkPermission(msg.member)) return;
+  if (!checkPermission(msg)) return;
   let args = msg.content.split('"');
   let name, date;
   let id = args[0].split(" ")[2];
@@ -141,7 +141,7 @@ export const update = async (msg) => {
  * @param {Message} msg
  */
 export const remove = async (msg) => {
-  if (!checkPermission(msg.member)) return;
+  if (!checkPermission(msg)) return;
   let args = msg.content.split(" ");
   if (args.length != 3) return msg.reply(messages.invalidArgument);
   try {
@@ -159,12 +159,12 @@ export const remove = async (msg) => {
  * @param {Message} msg
  */
 export const call = async (msg) => {
-  if (!checkPermission(msg.member)) return;
+  if (!checkPermission(msg)) return;
   let args = msg.content.split(" ");
-  if (args.length < 2) return msg.reply(messages.invalidArgument);
-  if (!db.exists(`/event/${args[1]}/`)) return msg.reply(messages.eventNotFound);
-  let event = db.getData(`/event/${args[1]}/`);
-  args.splice(0, 2);
+  if (args.length < 3) return msg.reply(messages.invalidArgument);
+  if (!db.exists(`/event/${args[2]}/`)) return msg.reply(messages.eventNotFound);
+  let event = db.getData(`/event/${args[2]}/`);
+  args.splice(0, 3);
   let str = [`**Event : ${event.name}**`];
   event.choices.forEach((c) => {
     if ((args.length == 0 || args.includes(c.emoji)) && c.members.length > 0)

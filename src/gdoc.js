@@ -1,7 +1,7 @@
 import { DMChannel, Message, User } from "discord.js";
 import { GoogleSpreadsheet, GoogleSpreadsheetRow } from "google-spreadsheet";
 import moment from "moment";
-import { db } from "./index.js";
+import { checkChannel, db } from "./index.js";
 
 const messages = {
   already: "Vous avez déjà une opération en cours.",
@@ -80,7 +80,7 @@ export const gdoc = async (msg, type) => {
   let user = msg.author;
   if (current.find((u) => u == user.id)) return msg.reply(messages.already);
   let data = db.getData("/gdoc/" + type);
-  if (msg.channel.id != data.channel) return msg.reply(messages.wrongChannel.replace("%i", data.channel));
+  if (!checkChannel(msg, data.channel)) return;
   try {
     let questions = q.filter((q) => q.sheet == data.sheet);
     let rows = await doc.sheetsById[data.sheet].getRows();

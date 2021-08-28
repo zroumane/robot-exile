@@ -49,7 +49,22 @@ const helpEmbed = {
       `,
     },
     {
-      name: ".voice",
+      name: ".audio (Admin)",
+      value: `
+        Voir la liste des audio
+        > \`.audio\`
+
+        Jouer un audio enregistré
+        > \`.audio <tag>\`
+        Attachez un fichier audio pour
+        l'enregistrer avec le tag inscrit
+
+        Supprimer un audio
+        > \`.audio -<tag>\`
+      `,
+    },
+    {
+      name: ".voice (Admin)",
       value: `
         Création d'un salon de création de salon
         > \`.voice add <channelId> <prefix>\`
@@ -60,10 +75,10 @@ const helpEmbed = {
       `,
     },
     {
-      name: ".event",
+      name: ".event (Admin)",
       value: `
       Créer un event
-      > \`.event add <eventId> "Guerre" 25/12 21:30 "tank;DPS;heal" 🛡️ ⚔️ ❤️\`
+      > \`.event add "Guerre" 25/12 21:30 "tank;DPS;heal" 🛡️ ⚔️ ❤️\`
 
       Mettre à jour un event
       > \`.event update <eventId> "Nouveau titre"\`
@@ -71,14 +86,10 @@ const helpEmbed = {
 
       Supprimer un event
       > \`.event remove <eventId>\`
-      `,
-    },
-    {
-      name: ".call",
-      value: `
-        Mentionner les membres participants à un event
-        > \`.call <eventId>\`
-        > \`.call <eventId> ✅\` 
+
+      Mentionner les membres participants à un event
+      > \`.event call <eventId>\`
+      > \`.event call <eventId> ✅\` 
       `,
     },
     {
@@ -94,38 +105,47 @@ client.on("ready", async () => {
   client.user.setActivity(`.help`, { type: "LISTENING" });
   let { voice } = await import("./voice.js");
   let { gdoc } = await import("./gdoc.js");
-  let { event, update, remove, call } = await import("./event.js");
+  let event = await import("./event.js");
+  let { audio } = await import("./audio.js");
 
   client.on("messageCreate", (msg) => {
     switch (true) {
-      case msg.content.startsWith(".voice"): {
+      /** Voice */
+      case msg.content.startsWith(".voice"):
         return voice(msg);
-      }
-      case msg.content.startsWith(".métier"): {
+
+      /** Gdoc */
+      case msg.content.startsWith(".métier"):
         return gdoc(msg, "métier");
-      }
-      case msg.content.startsWith(".perso"): {
+
+      case msg.content.startsWith(".perso"):
         return gdoc(msg, "perso");
-      }
-      case msg.content.startsWith(".event add"): {
-        return event(msg);
-      }
-      case msg.content.startsWith(".event update"): {
-        return update(msg);
-      }
-      case msg.content.startsWith(".event remove"): {
-        return remove(msg);
-      }
-      case msg.content.startsWith(".call"): {
-        return call(msg);
-      }
-      case msg.content.startsWith(".help"): {
+
+      case msg.content.startsWith(".event add"):
+        return event.event(msg);
+
+      /** Event */
+      case msg.content.startsWith(".event update"):
+        return event.update(msg);
+
+      case msg.content.startsWith(".event remove"):
+        return event.remove(msg);
+
+      case msg.content.startsWith(".event call"):
+        return event.call(msg);
+
+      /** Audio */
+      case msg.content.startsWith(".audio"):
+        return audio(msg);
+
+      /** Other */
+      case msg.content.startsWith(".help"):
         return msg.channel.send({ embeds: [helpEmbed] });
-      }
-      case msg.content.startsWith(".raclette"): {
+
+      case msg.content.startsWith(".raclette"):
         return msg.channel.send({ files: [new MessageAttachment("./assets/raclette.gif")] });
-      }
     }
+
     if (msg.content.startsWith(`<@!${client.user.id}>`)) return msg.reply("👋🤖");
   });
 });
@@ -134,8 +154,18 @@ client.on("ready", async () => {
  * @param {GuildMember} member
  * @returns
  */
-export const checkPermission = (member) => {
-  if (member.roles.cache.has(process.env.ADMIN_ID) || member.id == process.env.ZEPHYR_ID) return true;
+export const checkPermission = (msg) => {
+  if (msg.member.roles.cache.has(process.env.ADMIN_ID) || msg.member.id == process.env.ZEPHYR_ID) return true;
   msg.reply("Vous n'avez pas la permission d'utiliser cette commande.");
+  return false;
+};
+
+/**
+ * @param {GuildMember} member
+ * @returns
+ */
+export const checkChannel = (msg, channelId) => {
+  if (msg.channel.id == channelId) return true;
+  msg.reply(`Cette commande est seulement utilisable dans <#${channelId}>`);
   return false;
 };

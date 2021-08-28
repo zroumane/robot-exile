@@ -24,7 +24,7 @@ const unRegisterChannel = async (channel) => {
 };
 
 export const voice = (msg) => {
-  if (!checkPermission(msg.member)) return;
+  if (!checkPermission(msg)) return;
   let args = msg.content.split(" ");
   if (args[1] != "add" && args[1] != "remove") return msg.reply(messages.invalidArgument);
   let channelId = args[2];
