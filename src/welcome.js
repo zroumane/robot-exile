@@ -12,7 +12,7 @@ let channel = guild.channels.cache.get(welcome);
 const message =
   "Salut <@%u>, bienvenue sur le discord des exilés prend contact avec un membre du staff et il se fera un plaisir de t'accueillir comme il se doit sur notre beau discord, pour avoir accès à l'ensemble du discord, choisi un rôle ici : <#%r>";
 
-client.on("guildMemberAdd", (member) => {
+client.on("guildMemberAdd", async (member) => {
   const canvas = Canvas.createCanvas(1202, 670);
   const context = canvas.getContext("2d");
 
