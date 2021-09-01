@@ -33,11 +33,9 @@ export const audio = async (msg) => {
   if (!checkPermission(msg)) return;
 
   let args = msg.content.split(" ");
-  let data = db.getData("/audio/");
+  let audio = db.getData("/audio/");
 
-  if (!checkChannel(msg, data.channel)) return;
-
-  let audio = data.tag;
+  if (!checkChannel(msg, db.getData("/channel/audio"))) return;
 
   if (args.length == 1) {
     let reponse =
@@ -57,7 +55,7 @@ export const audio = async (msg) => {
     let _tag = tag.slice(1);
     if (!audio[_tag]) return msg.reply(messages.noaudio);
     fs.unlinkSync(`./audio/${guild.id}/${audio[_tag]}`);
-    db.delete(`/audio/tag/${_tag}`);
+    db.delete(`/audio/${_tag}`);
     return msg.reply(messages.deleted);
   }
 
@@ -67,7 +65,7 @@ export const audio = async (msg) => {
     const dest = `./audio/${guild.id}/${attachment.name}`;
 
     if (!attachment.contentType.startsWith("audio")) return msg.reply(messages.incorrectFormat);
-    db.push(`/audio/tag/${tag}`, attachment.name);
+    db.push(`/audio/${tag}`, attachment.name);
 
     if (!fs.existsSync(`./audio/${guild.id}`)) fs.mkdirSync(`./audio/${guild.id}`);
 

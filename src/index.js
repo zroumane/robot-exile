@@ -1,4 +1,4 @@
-import { Client, GuildMember, Intents, MessageAttachment } from "discord.js";
+import { Client, Guild, GuildMember, Intents, MessageAttachment } from "discord.js";
 import { JsonDB } from "node-json-db";
 import { Config } from "node-json-db/dist/lib/JsonDBConfig.js";
 import dotenv from "dotenv";
@@ -17,6 +17,7 @@ export const client = new Client({
     Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
     Intents.FLAGS.DIRECT_MESSAGES,
     Intents.FLAGS.GUILD_VOICE_STATES,
+    Intents.FLAGS.GUILD_MEMBERS,
   ],
   partials: ["MESSAGE", "CHANNEL", "REACTION"],
 });
@@ -94,13 +95,14 @@ const helpEmbed = {
   ],
 };
 
+/**
+ * @type {Guild}
+ */
 export let guild = null;
 
 client.login(process.env.ENV == "prod" ? process.env.PROD_TOKEN : process.env.DEV_TOKEN);
 
 client.on("ready", async () => {
-  console.log("Connected");
-
   await client.guilds.fetch();
   guild = client.guilds.cache.get(process.env.ENV == "prod" ? process.env.PROD_GUILD : process.env.DEV_GUILD);
 
@@ -109,6 +111,9 @@ client.on("ready", async () => {
   let { gdoc } = await import("./gdoc.js");
   let event = await import("./event.js");
   let { audio } = await import("./audio.js");
+  await import("./welcome.js");
+
+  console.log("Connected");
 
   client.on("messageCreate", (msg) => {
     switch (true) {
