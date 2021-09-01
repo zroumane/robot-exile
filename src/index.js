@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, Intents, MessageEmbed, MessageAttachment } from "discord.js";
+import { Client, GuildMember, Intents, MessageAttachment } from "discord.js";
 import { JsonDB } from "node-json-db";
 import { Config } from "node-json-db/dist/lib/JsonDBConfig.js";
 import dotenv from "dotenv";
@@ -37,15 +37,10 @@ const helpEmbed = {
       `,
     },
     {
-      name: ".métier",
+      name: ".gdoc (Admin)",
       value: `
-        Lancer l'opération de référencement de vos métiers NW sur le gdoc
-      `,
-    },
-    {
-      name: ".perso",
-      value: `
-        Lancer l'opération de référencement de votre personnage NW sur le gdoc
+        Initialiser les bouttons permmettants de mettre à jour les données
+        > \`.gdoc <gdocId> <sheetId>:<label> ...\`
       `,
     },
     {
@@ -122,16 +117,13 @@ client.on("ready", async () => {
         return voice(msg);
 
       /** Gdoc */
-      case msg.content.startsWith(".métier"):
-        return gdoc(msg, "métier");
+      case msg.content.startsWith(".gdoc"):
+        return gdoc(msg);
 
-      case msg.content.startsWith(".perso"):
-        return gdoc(msg, "perso");
-
+      /** Event */
       case msg.content.startsWith(".event add"):
         return event.event(msg);
 
-      /** Event */
       case msg.content.startsWith(".event update"):
         return event.update(msg);
 

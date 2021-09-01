@@ -1,11 +1,13 @@
-import { DMChannel, Message, User } from "discord.js";
+import { DMChannel, Message, User, MessageActionRow, MessageButton } from "discord.js";
 import { GoogleSpreadsheet, GoogleSpreadsheetRow } from "google-spreadsheet";
 import moment from "moment";
-import { checkChannel, db } from "./index.js";
+import { client } from "./index.js";
 
 const messages = {
+  intruction: "Clique sur le boutton correspondant pour mettre à jour tes données.",
+  gdoc: "Gdoc des Exilés",
   already: "Vous avez déjà une opération en cours.",
-  welcome: "Bonjour %u. Vous aurez 60 secondes pour répondre à chaque questions.",
+  welcome: "Bonjour %u.",
   invalidAnswer: "La valeur doit etre comprise entre %l et %m.",
   operationEnded: "L'opération est terminée.",
   wrongChannel: "Cette commande est seulement utilisable dans <#%i>",
@@ -65,7 +67,6 @@ const messageAwait = async (user, channel, row, questions) => {
         return messageAwait(user, channel, row, questions);
       })
       .catch((e) => {
-        console.log(e);
         if (row.date == 0) row.delete();
         channel.send(messages.countdownEnded);
         current = current.filter((u) => u != user.id);
@@ -73,28 +74,52 @@ const messageAwait = async (user, channel, row, questions) => {
   }
 };
 
-/**
- * @param {Message} msg
- */
-export const gdoc = async (msg, type) => {
-  let user = msg.author;
-  if (current.find((u) => u == user.id)) return msg.reply(messages.already);
-  let data = db.getData("/gdoc/" + type);
-  if (!checkChannel(msg, data.channel)) return;
+client.on("interactionCreate", async (button) => {
+  if (!button.isButton()) return;
+  let sheetId = button.customId;
+  let sheet = await doc.sheetsById[sheetId];
+  if (!sheet) throw "no sheet";
+  let user = button.user;
+  if (current.find((u) => u == user.id)) return button.deferUpdate();
   try {
-    let questions = q.filter((q) => q.sheet == data.sheet);
-    let rows = await doc.sheetsById[data.sheet].getRows();
-    let row =
-      rows.find((row) => row.id == user.id) ??
-      (await doc.sheetsById[data.sheet].addRow(Array(3 + questions.length).fill(0)));
+    let questions = q.filter((q) => q.sheet == sheetId);
+    let rows = await sheet.getRows();
+    let row = rows.find((row) => row.id == user.id) ?? (await sheet.addRow(Array(3 + questions.length).fill(0)));
     row.id = user.id;
     row.pseudo = user.username;
     let channel = await user.createDM();
     channel.send(messages.welcome.replace("%u", user.username));
-    msg.reply(messages.dmSend);
     current.push(user.id);
     messageAwait(user, channel, row, questions);
-  } catch (e) {
-    return msg.reply(messages.error);
+    return button.deferUpdate();
+  } catch (e) {}
+});
+
+/**
+ * @param {Message} msg
+ */
+export const gdoc = (msg) => {
+  let args = msg.content.split(" ");
+  if (msg.deletable) msg.delete();
+  if (args.length < 3) return;
+  let components = [
+    new MessageActionRow().addComponents(
+      new MessageButton()
+        .setURL(`https://docs.google.com/spreadsheets/d/${args[1]}`)
+        .setLabel(messages.gdoc)
+        .setStyle("LINK")
+    ),
+  ];
+  for (let i = 2; i < args.length; i++) {
+    let data = args[i].split(":");
+    components.push(
+      new MessageActionRow().addComponents(
+        new MessageButton()
+          .setCustomId(data[0])
+          .setLabel(data[1] == "" ? `Boutton` : data[1])
+          .setStyle("PRIMARY")
+      )
+    );
   }
+  msg.channel.send({ content: messages.intruction, components: components });
 };
