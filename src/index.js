@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, Intents, MessageAttachment } from "discord.js";
+import { Client, DMChannel, Guild, GuildMember, Intents, MessageAttachment } from "discord.js";
 import { JsonDB } from "node-json-db";
 import { Config } from "node-json-db/dist/lib/JsonDBConfig.js";
 import dotenv from "dotenv";
@@ -89,6 +89,20 @@ const helpEmbed = {
       `,
     },
     {
+      name: ".twitter (Admin)",
+      value: `
+        Voir la liste des comptes twitter en écoute
+        > \`.twitter\`
+
+        Commencé à écouté un compte twitter
+        > \`.twitter <username>\`
+        Les tweets du compte apparaîtrons dans le salon où la commande est entrée. 
+
+        Supprimer un compte twitter
+        > \`.twitter -<username>\`
+      `,
+    },
+    {
       name: "Crédit",
       value: `Bot développé par <@${process.env.ZEPHYR_ID}> pour les Exilés !`,
     },
@@ -100,17 +114,26 @@ const helpEmbed = {
  */
 export let guild = null;
 
+/**
+ * @type {DMChannel}
+ */
+export let ownerChannel = null;
+
 client.login(process.env.ENV == "prod" ? process.env.PROD_TOKEN : process.env.DEV_TOKEN);
 
 client.on("ready", async () => {
   await client.guilds.fetch();
   guild = client.guilds.cache.get(process.env.ENV == "prod" ? process.env.PROD_GUILD : process.env.DEV_GUILD);
 
+  await guild.members.fetch();
+  ownerChannel = await guild.members.cache.get(process.env.ZEPHYR_ID).createDM();
+
   client.user.setActivity(`.help`, { type: "LISTENING" });
   let { voice } = await import("./voice.js");
   let { gdoc } = await import("./gdoc.js");
   let event = await import("./event.js");
   let { audio } = await import("./audio.js");
+  let { twitter } = await import("./twitter.js");
   await import("./welcome.js");
 
   console.log("Connected");
@@ -124,6 +147,10 @@ client.on("ready", async () => {
       /** Gdoc */
       case msg.content.startsWith(".gdoc"):
         return gdoc(msg);
+
+      /** Twitter */
+      case msg.content.startsWith(".twitter"):
+        return twitter(msg);
 
       /** Event */
       case msg.content.startsWith(".event add"):

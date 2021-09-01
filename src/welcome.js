@@ -1,5 +1,5 @@
 import { MessageAttachment } from "discord.js";
-import { checkChannel, client, db, guild } from "./index.js";
+import { client, db, guild } from "./index.js";
 import Canvas from "canvas";
 
 Canvas.registerFont("./assets/tommy.otf", { family: "Tommy" });
