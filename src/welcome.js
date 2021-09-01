@@ -1,5 +1,5 @@
 import { MessageAttachment } from "discord.js";
-import { client, db, guild } from "./index.js";
+import { checkChannel, client, db, guild } from "./index.js";
 import Canvas from "canvas";
 
 Canvas.registerFont("./assets/tommy.otf", { family: "Tommy" });
@@ -9,8 +9,14 @@ let role = db.getData("/channel/role");
 
 let channel = guild.channels.cache.get(welcome);
 
-const message =
-  "Salut <@%u>, bienvenue sur le discord des exilés prend contact avec un membre du staff et il se fera un plaisir de t'accueillir comme il se doit sur notre beau discord, pour avoir accès à l'ensemble du discord, choisi un rôle ici : <#%r>";
+const messages = {
+  add: "Salut <@%u>, bienvenue sur le discord des exilés prend contact avec un membre du staff et il se fera un plaisir de t'accueillir comme il se doit sur notre beau discord, pour avoir accès à l'ensemble du discord, choisi un rôle ici : <#%r>",
+  delete: "<@%u> un ami fromager nous quitte! Bon vent à toi!",
+};
+
+client.on("guildMemberRemove", (member) => {
+  channel.send(messages.delete.replace("%u", member.id));
+});
 
 client.on("guildMemberAdd", async (member) => {
   const canvas = Canvas.createCanvas(1202, 670);
@@ -40,5 +46,5 @@ client.on("guildMemberAdd", async (member) => {
   context.drawImage(avatar, canvas.width / 2 - 140, canvas.height / 2 - 300, 280, 280);
 
   const attachment = new MessageAttachment(canvas.toBuffer());
-  channel.send({ content: message.replace("%u", member.id).replace("%r", role), files: [attachment] });
+  channel.send({ content: messages.add.replace("%u", member.id).replace("%r", role), files: [attachment] });
 });
