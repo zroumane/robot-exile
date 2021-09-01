@@ -1,6 +1,9 @@
 import { Message } from "discord.js";
 import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } from "@discordjs/voice";
-import { checkChannel, checkPermission, db } from "./index.js";
+import { checkChannel, checkPermission, db, guild } from "./index.js";
+
+import fs from "fs";
+import https from "https";
 
 const messages = {
   nochannel: "Vous devez être connecté à un salon.",
@@ -8,13 +11,25 @@ const messages = {
   incorrectFormat: "Le fichier attaché doit être un fichier audio.",
   audioAdded: "L'audio a été ajouté, `%c` pour le jouer.",
   noaudio: "Cet audio n'existe pas.",
-  deleted: "L'audio a bien été supprimé",
+  deleted: "L'audio a bien été supprimé.",
+  dlerror: "Une erreur est survenue lors du téléchargement de l'audio.",
 };
+
+const player = createAudioPlayer();
+
+let connection = null;
+
+player.on(AudioPlayerStatus.Idle, () => {
+  try {
+    connection.destroy();
+    player.stop();
+  } catch (e) {}
+});
 
 /**
  * @param {Message} msg
  */
-export const audio = (msg) => {
+export const audio = async (msg) => {
   if (!checkPermission(msg)) return;
 
   let args = msg.content.split(" ");
@@ -39,37 +54,48 @@ export const audio = (msg) => {
   if (!tag) return msg.reply(messages.notag);
 
   if (tag.startsWith("-")) {
-    if (!audio[tag.slice(1)]) return msg.reply(messages.noaudio);
-    db.delete(`/audio/tag/${tag.slice(1)}`);
+    let _tag = tag.slice(1);
+    if (!audio[_tag]) return msg.reply(messages.noaudio);
+    fs.unlinkSync(`./audio/${guild.id}/${audio[_tag]}`);
+    db.delete(`/audio/tag/${_tag}`);
     return msg.reply(messages.deleted);
   }
 
-  let file = msg.attachments.first();
-  if (file) {
-    if (!file.contentType.startsWith("audio")) return msg.reply(messages.incorrectFormat);
-    db.push(`/audio/tag/${tag}`, file.url);
-    return msg.reply(messages.audioAdded.replace("%c", `.audio ${tag}`));
+  let attachment = msg.attachments.first();
+
+  if (attachment) {
+    const dest = `./audio/${guild.id}/${attachment.name}`;
+
+    if (!attachment.contentType.startsWith("audio")) return msg.reply(messages.incorrectFormat);
+    db.push(`/audio/tag/${tag}`, attachment.name);
+
+    if (!fs.existsSync(`./audio/${guild.id}`)) fs.mkdirSync(`./audio/${guild.id}`);
+
+    let file = fs.createWriteStream(dest);
+    https
+      .get(attachment.url, function (response) {
+        response.pipe(file);
+        file.on("finish", function () {
+          msg.reply(messages.audioAdded.replace("%c", `.audio ${tag}`));
+          file.close();
+        });
+      })
+      .on("error", function (e) {
+        msg.reply(messages.dlerror);
+      });
+    return;
   }
 
   let channel = msg.member.voice.channel;
   if (!channel) return msg.reply(messages.nochannel);
 
   if (!audio[tag]) return msg.reply(messages.noaudio);
-  let url = audio[tag];
 
-  let connection = joinVoiceChannel({
+  connection = await joinVoiceChannel({
     channelId: channel.id,
     guildId: channel.guild.id,
     adapterCreator: channel.guild.voiceAdapterCreator,
   });
-
-  const player = createAudioPlayer();
-  player.on(AudioPlayerStatus.Idle, () => {
-    try {
-      connection.destroy();
-      player.stop();
-    } catch (e) {}
-  });
-  player.play(createAudioResource(url));
   connection.subscribe(player);
+  player.play(createAudioResource(`./audio/${guild.id}/${audio[tag]}`));
 };

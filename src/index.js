@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Init Database
-export let db = new JsonDB(
+export const db = new JsonDB(
   new Config(`db/${process.env.ENV == "prod" ? process.env.PROD_GUILD : process.env.DEV_GUILD}`, true, true, "/")
 );
 
@@ -99,9 +99,16 @@ const helpEmbed = {
   ],
 };
 
+export let guild = null;
+
 client.login(process.env.ENV == "prod" ? process.env.PROD_TOKEN : process.env.DEV_TOKEN);
+
 client.on("ready", async () => {
   console.log("Connected");
+
+  await client.guilds.fetch();
+  guild = client.guilds.cache.get(process.env.ENV == "prod" ? process.env.PROD_GUILD : process.env.DEV_GUILD);
+
   client.user.setActivity(`.help`, { type: "LISTENING" });
   let { voice } = await import("./voice.js");
   let { gdoc } = await import("./gdoc.js");
