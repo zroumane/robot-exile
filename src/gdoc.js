@@ -4,7 +4,7 @@ import moment from "moment";
 import { client } from "./index.js";
 
 const messages = {
-  intruction: "Clique sur le boutton correspondant pour mettre à jour tes données.",
+  intruction: "Clique sur le bouton correspondant pour mettre à jour tes données.",
   gdoc: "Gdoc des Exilés",
   already: "Vous avez déjà une opération en cours.",
   welcome: "Bonjour %u.",
