@@ -4,9 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "author": "Zephyr",
-  "type": "module",
   "scripts": {
-    "dev": "ENV=dev nodemon src/index.js",
+    "dev": "ENV=dev nodemon --signal SIGHUP src/index.js",
     "start": "ENV=prod forever start src/index.js",
     "stop": "ENV=prod forever stop src/index.js"
   },
@@ -22,7 +21,6 @@
     "node-json-db": "^1.3.0",
     "nodemon": "^2.0.12",
     "sodium": "^3.0.2",
-    "twit": "^2.2.11",
     "twitter-v2": "^1.1.0"
   }
 }

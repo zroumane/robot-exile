@@ -1,16 +1,17 @@
-import { Client, DMChannel, Guild, GuildMember, Intents, MessageAttachment } from "discord.js";
-import { JsonDB } from "node-json-db";
-import { Config } from "node-json-db/dist/lib/JsonDBConfig.js";
-import dotenv from "dotenv";
+const { Client, Collection, Intents } = require("discord.js");
+const { Config } = require("node-json-db/dist/lib/JsonDBConfig.js");
+const { JsonDB } = require("node-json-db");
+const Twitter = require("twitter-v2");
+const fs = require("fs");
+const dotenv = require("dotenv");
 dotenv.config();
 
-// Init Database
-export const db = new JsonDB(
-  new Config(`db/${process.env.ENV == "prod" ? process.env.PROD_GUILD : process.env.DEV_GUILD}`, true, true, "/")
-);
+// Init DB
+let guildId = process.env.ENV == "prod" ? process.env.PROD_GUILD : process.env.DEV_GUILD;
+exports.db = db = new JsonDB(new Config(`db/${guildId}`, true, true, "/"));
 
-// Init Discord Bot Client
-export const client = new Client({
+// Init Discord Client
+const client = new Client({
   intents: [
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MESSAGES,
@@ -21,182 +22,75 @@ export const client = new Client({
   ],
   partials: ["MESSAGE", "CHANNEL", "REACTION"],
 });
+exports.client = client;
 
-const helpEmbed = {
-  title: "Help !",
-  description: `
-    Voice les commandes du 🤖 Exilés. 
-    \`<eventId>\` correspond à l'identifiant du message de l'event
-    \`<channelId>\` correspondent à l'identifiant d'un salon vocal
-    Pour accéder à ces identifiants vous devez activer les options développeurs
-  `,
-  fields: [
-    {
-      name: ".help",
-      value: `
-      Afficher ce message
-      `,
-    },
-    {
-      name: ".gdoc (Admin)",
-      value: `
-        Initialiser les bouttons permmettants de mettre à jour les données
-        > \`.gdoc <gdocId> <sheetId>:<label> ...\`
-      `,
-    },
-    {
-      name: ".audio (Admin)",
-      value: `
-        Voir la liste des audio
-        > \`.audio\`
-
-        Jouer un audio enregistré
-        > \`.audio <tag>\`
-        Attachez un fichier audio pour
-        l'enregistrer avec le tag inscrit
-
-        Supprimer un audio
-        > \`.audio -<tag>\`
-      `,
-    },
-    {
-      name: ".voice (Admin)",
-      value: `
-        Création d'un salon de création de salon
-        > \`.voice add <channelId> <prefix>\`
-        Le prefix non obligatoire sera situé dans le nom des salons créés
-        
-        Suppression d'un salon de création de salon
-        > \`.voice remove <channelId>\`
-      `,
-    },
-    {
-      name: ".event (Admin)",
-      value: `
-      Créer un event
-      > \`.event add "Guerre" 25/12 21:30 "tank;DPS;heal" 🛡️ ⚔️ ❤️\`
-
-      Mettre à jour un event
-      > \`.event update <eventId> "Nouveau titre"\`
-      > \`.event update <eventId> 23/06 19:00\`
-
-      Supprimer un event
-      > \`.event remove <eventId>\`
-
-      Mentionner les membres participants à un event
-      > \`.event call <eventId>\`
-      > \`.event call <eventId> ✅\` 
-      `,
-    },
-    {
-      name: ".twitter (Admin)",
-      value: `
-        Voir la liste des comptes twitter en écoute
-        > \`.twitter\`
-
-        Commencé à écouté un compte twitter
-        > \`.twitter <username>\`
-        Les tweets du compte apparaîtrons dans le salon où la commande est entrée. 
-
-        Supprimer un compte twitter
-        > \`.twitter -<username>\`
-      `,
-    },
-    {
-      name: "Crédit",
-      value: `Bot développé par <@${process.env.ZEPHYR_ID}> pour les Exilés !`,
-    },
-  ],
+const shutdown = async (e) => {
+  console.log("Deconnecting...");
+  await client?.stream?.close();
+  await client?.connection?.destroy();
+  await client.destroy();
+  if (e) process.exit(0);
+  return;
 };
 
-/**
- * @type {Guild}
- */
-export let guild = null;
+(async () => {
+  // Init Twitter
+  exports.T = new Twitter({
+    consumer_key: process.env.CONSUMER,
+    consumer_secret: process.env.CONSUMER_SECRET,
+  });
 
-/**
- * @type {DMChannel}
- */
-export let ownerChannel = null;
+  // Init gdoc
+  client.gdoc = await (await require("./utils/refreshGdoc.js"))();
 
-client.login(process.env.ENV == "prod" ? process.env.PROD_TOKEN : process.env.DEV_TOKEN);
+  // Client Login
+  await client.login(process.env.ENV == "prod" ? process.env.PROD_TOKEN : process.env.DEV_TOKEN);
+  client.user.setActivity(`/help`, { type: "LISTENING" });
 
-client.on("ready", async () => {
+  // Init some utils
   await client.guilds.fetch();
-  guild = client.guilds.cache.get(process.env.ENV == "prod" ? process.env.PROD_GUILD : process.env.DEV_GUILD);
+  client.guild = client.guilds.cache.get(guildId);
+  await client.guild.members.fetch();
+  client.ownerChannel = await client.guild.members.cache.get(process.env.ZEPHYR_ID).createDM();
 
-  await guild.members.fetch();
-  ownerChannel = await guild.members.cache.get(process.env.ZEPHYR_ID).createDM();
+  // Init interactions
+  client.interactions = new Collection();
+  const interactions = fs.readdirSync("./src/interactions").filter((file) => file.endsWith(".js"));
+  for (const interaction of interactions) {
+    const command = await require(`./interactions/${interaction}`);
+    client.interactions.set(command.data.name, command);
+  }
+  await client.guild.commands.set(client.interactions.map((i) => i.data));
 
-  client.user.setActivity(`.help`, { type: "LISTENING" });
-  let { voice } = await import("./voice.js");
-  let { gdoc } = await import("./gdoc.js");
-  let event = await import("./event.js");
-  let { audio } = await import("./audio.js");
-  let { twitter } = await import("./twitter.js");
-  await import("./welcome.js");
+  client.guild.commands.cache.forEach(async (c) => {
+    await c.permissions.set({
+      permissions: [
+        {
+          id: process.env.ZEPHYR_ID,
+          type: "USER",
+          permission: true,
+        },
+        {
+          id: process.env.ADMIN_ID,
+          type: "ROLE",
+          permission: true,
+        },
+      ],
+    });
+  });
+
+  // Init events
+  const events = fs.readdirSync("./src/events").filter((file) => file.endsWith(".js"));
+  events.forEach(async (file) => {
+    const name = file.split(".")[0];
+    const event = await require(`./events/${file}`);
+    if (event.once) client.once(name, (...args) => event.execute(...args));
+    else client.on(name, (...args) => event.execute(...args));
+  });
 
   console.log("Connected");
+})();
 
-  client.on("messageCreate", (msg) => {
-    switch (true) {
-      /** Voice */
-      case msg.content.startsWith(".voice"):
-        return voice(msg);
+process.once("SIGHUP", () => shutdown(false));
 
-      /** Gdoc */
-      case msg.content.startsWith(".gdoc"):
-        return gdoc(msg);
-
-      /** Twitter */
-      case msg.content.startsWith(".twitter"):
-        return twitter(msg);
-
-      /** Event */
-      case msg.content.startsWith(".event add"):
-        return event.event(msg);
-
-      case msg.content.startsWith(".event update"):
-        return event.update(msg);
-
-      case msg.content.startsWith(".event remove"):
-        return event.remove(msg);
-
-      case msg.content.startsWith(".event call"):
-        return event.call(msg);
-
-      /** Audio */
-      case msg.content.startsWith(".audio"):
-        return audio(msg);
-
-      /** Other */
-      case msg.content.startsWith(".help"):
-        return msg.channel.send({ embeds: [helpEmbed] });
-
-      case msg.content.startsWith(".raclette"):
-        return msg.channel.send({ files: [new MessageAttachment("./assets/raclette.gif")] });
-    }
-
-    if (msg.content.startsWith(`<@!${client.user.id}>`)) return msg.reply("👋🤖");
-  });
-});
-
-/**
- * @param {GuildMember} member
- * @returns
- */
-export const checkPermission = (msg) => {
-  if (msg.member.roles.cache.has(process.env.ADMIN_ID) || msg.member.id == process.env.ZEPHYR_ID) return true;
-  msg.reply("Vous n'avez pas la permission d'utiliser cette commande.");
-  return false;
-};
-
-/**
- * @param {GuildMember} member
- * @returns
- */
-export const checkChannel = (msg, channelId) => {
-  if (msg.channel.id == channelId) return true;
-  msg.reply(`Cette commande est seulement utilisable dans <#${channelId}>`);
-  return false;
-};
+process.on("SIGINT", () => shutdown(true));
