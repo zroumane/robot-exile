@@ -8,7 +8,8 @@ dotenv.config();
 
 // Init DB
 let guildId = process.env.ENV == "prod" ? process.env.PROD_GUILD : process.env.DEV_GUILD;
-exports.db = db = new JsonDB(new Config(`db/${guildId}`, true, true, "/"));
+const db = new JsonDB(new Config(`db/${guildId}`, true, true, "/"));
+exports.db = db;
 
 // Init Discord Client
 const client = new Client({
@@ -19,6 +20,7 @@ const client = new Client({
     Intents.FLAGS.DIRECT_MESSAGES,
     Intents.FLAGS.GUILD_VOICE_STATES,
     Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_PRESENCES,
   ],
   partials: ["MESSAGE", "CHANNEL", "REACTION"],
 });
@@ -62,7 +64,7 @@ const shutdown = async (e) => {
   }
   await client.guild.commands.set(client.interactions.map((i) => i.data));
 
-  client.guild.commands.cache.forEach(async (c) => {
+  await client.guild.commands.cache.forEach(async (c) => {
     await c.permissions.set({
       permissions: [
         {
