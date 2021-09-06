@@ -1,5 +1,6 @@
 const { User, DMChannel } = require("discord.js");
 const { GoogleSpreadsheetRow } = require("google-spreadsheet");
+const moment = require("moment");
 const { client } = require("../index.js");
 
 const dmChannelMessage = {
@@ -45,6 +46,7 @@ const messageAwait = async (user, channel, row, questions, choices) => {
         return messageAwait(user, channel, row, questions, choices);
       })
       .catch((e) => {
+        console.log(e);
         if (row.date == 0) row.delete();
         channel.send(dmChannelMessage.countdownEnded);
         client.gdoc.current = client.gdoc.current.filter((u) => u != user.id);

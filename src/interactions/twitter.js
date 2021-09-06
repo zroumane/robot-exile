@@ -16,7 +16,7 @@ const listenForever = async (getStream, cb, atempt) => {
   try {
     for await (const { data } of getStream()) cb(data);
   } catch (error) {
-    client.ownerChannel.send("Error" + error);
+    client.ownerChannel.send("Twitter " + error);
     return setTimeout(() => {
       listenForever(getStream, cb, atempt + 1);
     }, 2 ** atempt * 1000);
@@ -48,7 +48,7 @@ const reloadStream = async () => {
       return client.stream;
     },
     (data) => {
-      let user = twitter.find((u) => u.id == data.author_id);
+      let user = twitter.find((u) => u.id == data?.author_id);
       if (user) {
         let channel = client.guild.channels.cache.get(user.channel);
         if (channel) channel.send(`https://twitter.com/${user.name}/status/${data.id}`);
