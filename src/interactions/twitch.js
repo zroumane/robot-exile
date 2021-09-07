@@ -4,7 +4,7 @@ const removeFromArray = require("../utils/removeFromArray.js");
 const messages = {
   channel: "Vous devez fournir un salon de type texte.",
   role: "Vous devez fournir un role valide.",
-  config: "Voici la configuration twitch :\n> Salon: %c\n> Role: %r\n> Message: `%m`",
+  config: "Voici la configuration twitch :\n> Salon: %c\n> Role: %r",
   streamerList: "Voici la liste des streamers : ",
   noStreamer: "Il n'y a pas de streamer enregistré.",
   notFound: "L'utilisateur est introuvable.",
@@ -66,12 +66,6 @@ module.exports = {
             required: false,
             type: "ROLE",
           },
-          {
-            name: "message",
-            description: "Message d'annonce d'un stream (%u sera remplacer par la mention du membre et %g par le jeu)",
-            required: false,
-            type: "STRING",
-          },
         ],
       },
     ],
@@ -93,9 +87,15 @@ module.exports = {
       interaction.editReply(messages.added.replace("%u", `<@${member.id}>`));
     }
 
+    const config = db.getData("/twitch/config");
+
     if (args.get("subcommand") == "remove") {
-      const result = await removeFromArray("/twitch/streamers", args.get("user"), "id");
-      if (!result) return interaction.editReply(messages.notFound);
+      const user = client.guild.members.resolve(args.get("user"));
+      if (!user) return interaction.editReply(messages.notFound);
+      await removeFromArray("/twitch/streamers", args.get("user"), "id");
+      if (config.role) {
+        user.roles.remove(client.guild.roles.resolve(config.role));
+      }
       interaction.editReply(messages.removed);
     }
 
@@ -112,17 +112,10 @@ module.exports = {
         db.push(`/twitch/config/role`, role.id);
       }
 
-      if (args.get("message")) {
-        db.push(`/twitch/config/message`, args.get("message"));
-      }
-
-      const config = db.getData("/twitch/config");
-
       interaction.editReply(
         messages.config
           .replace("%c", config.channel ? `<#${config.channel}>` : "-")
           .replace("%r", config.role ? `<@&${config.role}>` : "-")
-          .replace("%m", config.message ?? "-")
       );
     }
 

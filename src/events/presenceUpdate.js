@@ -37,11 +37,30 @@ module.exports = {
       try {
         member.roles.add(role);
         const activity = getLive(newPresence);
-        channel.send(
-          config.message
-            ? config.message.replace("%u", `<@${member.id}>`).replace("%g", activity.state) + "\n" + activity.url
-            : `<@${member.id}> sur "${activity.state}"\n${activity.url}`
-        );
+        const url = activity.url;
+        const embed = {
+          color: "#451093",
+          title: activity.details ?? "Stream",
+          url: url,
+          author: {
+            name: url.split("/").reverse()[0],
+            icon_url: member.user.avatarURL(),
+          },
+          thumbnail: {
+            url: member.user.avatarURL(),
+          },
+          fields: [
+            {
+              name: "Jeu",
+              value: activity.state,
+            },
+          ],
+          image: {
+            url: activity.assets.largeImageURL(),
+          },
+        };
+
+        channel.send({ embeds: [embed] });
       } catch (e) {}
     } else if (oldStreamActivity && !newStreamActivity) {
       try {
