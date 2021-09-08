@@ -38,11 +38,11 @@ const shutdown = async (e) => {
 (async () => {
   // Init Twitter
   exports.T = new Twit({
-    consumer_key:         '...',
-    consumer_secret:      '...',
-    access_token:         '...',
-    access_token_secret:  '...',
-  })
+    consumer_key: process.env.CONSUMER,
+    consumer_secret: process.env.CONSUMER_SECRET,
+    access_token: process.env.ACCESS_TOKEN,
+    access_token_secret: process.env.ACCESS_TOKEN_SECRET,
+  });
 
   // Init gdoc
   client.gdoc = await (await require("./utils/refreshGdoc.js"))();

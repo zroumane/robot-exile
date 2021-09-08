@@ -12,50 +12,24 @@ const messages = {
   noChannel: "Vous devez fournir un salon textuel",
 };
 
-const listenForever = async (getStream, cb, atempt) => {
-  try {
-    for await (const { data } of getStream()) cb(data);
-  } catch (error) {
-    client.ownerChannel.send("Twitter " + error);
-    return setTimeout(() => {
-      listenForever(getStream, cb, atempt + 1);
-    }, 2 ** atempt * 1000);
-  }
-};
+let stream = null;
 
 const reloadStream = async () => {
   var twitter = db.getData("/twitter");
   if (twitter.length == 0) return;
-  if (client.stream) client.stream.close();
+  if (stream) stream.stop();
 
-  const res = await T.get("tweets/search/stream/rules");
-  if (res.data && res.data.length > 0) {
-    await T.post("tweets/search/stream/rules", {
-      delete: { ids: res.data.map((r) => r.id) },
-    });
-  }
-  await T.post("tweets/search/stream/rules", {
-    add: twitter.map((u) => {
-      return { value: `from:${u.name} -is:retweet -is:reply`, tag: `from ${u.name}` };
-    }),
+  stream = T.stream("statuses/filter", { follow: twitter.map((u) => u.id) });
+
+  stream.on("tweet", function (tweet) {
+    if (tweet.in_reply_to_status_id) return;
+    if (tweet.retweeted_status) return;
+    let user = twitter.find((u) => u.id == tweet?.user?.id_str);
+    if (user) {
+      let channel = client.guild.channels.cache.get(user.channel);
+      if (channel) channel.send(`https://twitter.com/${user.name}/status/${tweet.id_str}`);
+    }
   });
-
-  listenForever(
-    () => {
-      client.stream = T.stream("tweets/search/stream", {
-        "tweet.fields": ["author_id"],
-      });
-      return client.stream;
-    },
-    (data) => {
-      let user = twitter.find((u) => u.id == data?.author_id);
-      if (user) {
-        let channel = client.guild.channels.cache.get(user.channel);
-        if (channel) channel.send(`https://twitter.com/${user.name}/status/${data.id}`);
-      }
-    },
-    1
-  );
 };
 
 reloadStream();
@@ -137,21 +111,14 @@ module.exports = {
         const channel = client.guild.channels.cache.get(args.get("channel"));
         if (!channel.type == "GUILD_TEXT") return interaction.editReply(messages.noChannel);
         await removeFromArray("/twitter", name, "name");
-        
-        
-        //const user = (await T.get("users/by/username/" + name)).data;
-
-        //Test
-        const user = await T.get("users/lookup", {screen_name: name})
-        console.log(user)
-
-        const obj = { channel: channel.id, id: user.id, name: user.username };
+        const user = (await T.get("users/lookup", { screen_name: name })).data[0];
+        const obj = { channel: channel.id, id: user["id_str"], name: user.screen_name };
         db.push(`/twitter[]`, obj);
-        reloadStream();
         interaction.editReply(messages.added);
       } catch (e) {
         interaction.editReply(messages.nofound);
       }
+      reloadStream();
       return refreshCommand(interaction.command, getData());
     }
   },
