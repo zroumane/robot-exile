@@ -2,7 +2,7 @@ const { Presence } = require("discord.js");
 const { db, client } = require("../index.js");
 
 const getLive = (presence) => {
-  if (!presence.activities) return null;
+  if (!presence?.activities) return null;
   presence.activities.find((a) => a.type == "STREAMING");
 };
 
