@@ -137,7 +137,14 @@ module.exports = {
         const channel = client.guild.channels.cache.get(args.get("channel"));
         if (!channel.type == "GUILD_TEXT") return interaction.editReply(messages.noChannel);
         await removeFromArray("/twitter", name, "name");
-        const user = (await T.get("users/by/username/" + name)).data;
+        
+        
+        //const user = (await T.get("users/by/username/" + name)).data;
+
+        //Test
+        const user = await T.get("users/lookup", {screen_name: name})
+        console.log(user)
+
         const obj = { channel: channel.id, id: user.id, name: user.username };
         db.push(`/twitter[]`, obj);
         reloadStream();

@@ -1,7 +1,7 @@
 const { Client, Collection, Intents } = require("discord.js");
 const { Config } = require("node-json-db/dist/lib/JsonDBConfig.js");
 const { JsonDB } = require("node-json-db");
-const Twitter = require("twitter-v2");
+const Twit = require("twit");
 const fs = require("fs");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -37,10 +37,12 @@ const shutdown = async (e) => {
 
 (async () => {
   // Init Twitter
-  exports.T = new Twitter({
-    consumer_key: process.env.CONSUMER,
-    consumer_secret: process.env.CONSUMER_SECRET,
-  });
+  exports.T = new Twit({
+    consumer_key:         '...',
+    consumer_secret:      '...',
+    access_token:         '...',
+    access_token_secret:  '...',
+  })
 
   // Init gdoc
   client.gdoc = await (await require("./utils/refreshGdoc.js"))();
