@@ -1,7 +1,10 @@
 const { Presence } = require("discord.js");
 const { db, client } = require("../index.js");
 
-const getLive = (presence) => presence.activities.find((a) => a.type == "STREAMING");
+const getLive = (presence) => {
+  if (!presence.activities) return null;
+  presence.activities.find((a) => a.type == "STREAMING");
+};
 
 (async () => {
   const role = client.guild.roles.resolve(db.getData("/twitch/config").role);
