@@ -10,27 +10,20 @@ module.exports = {
     let newChannel = newState.channel;
     if (newChannel && newChannel != oldChannel) {
       let index = db.getIndex(`/voice/init`, newChannel.id, "channel");
-      if (index == "-1") return;
-      let initChannel = db.getData(`/voice/init[${index}]`);
-      if (initChannel) {
+      if (index != "-1") {
+        let initChannel = db.getData(`/voice/init[${index}]`);
         guild.channels
           .create(`${initChannel.prefix ?? "Salon"} de ${member.nickname ?? member.user.username}`, {
             type: "GUILD_VOICE",
-            permissionOverwrites: [
-              {
-                id: member.id,
-                allow: ["MANAGE_CHANNELS"],
-              },
-            ],
             parent: newChannel.parent,
           })
-          .then((c) => {
+          .then(async (c) => {
+            c.permissionOverwrites.create(member, { MANAGE_CHANNELS: true });
             member.voice.setChannel(c);
             db.push(`/voice/created[]`, { channel: c.id });
           });
       }
     }
-
     if (oldChannel && oldChannel.members.size == 0) {
       let result = await removeFromArray("/voice/created", oldChannel.id, "channel");
       if (result) oldChannel.delete();
