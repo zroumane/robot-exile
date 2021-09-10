@@ -19,17 +19,21 @@ const reloadStream = async () => {
   if (twitter.length == 0) return;
   if (stream) stream.stop();
 
-  stream = T.stream("statuses/filter", { follow: twitter.map((u) => u.id) });
-
-  stream.on("tweet", function (tweet) {
-    if (tweet.in_reply_to_status_id) return;
-    if (tweet.retweeted_status) return;
-    let user = twitter.find((u) => u.id == tweet?.user?.id_str);
-    if (user) {
-      let channel = client.guild.channels.cache.get(user.channel);
-      if (channel) channel.send(`https://twitter.com/${user.name}/status/${tweet.id_str}`);
-    }
-  });
+  try {
+    stream = T.stream("statuses/filter", { follow: twitter.map((u) => u.id) });
+    stream.on("tweet", function (tweet) {
+      if (tweet.in_reply_to_status_id) return;
+      if (tweet.retweeted_status) return;
+      let user = twitter.find((u) => u.id == tweet?.user?.id_str);
+      if (user) {
+        let channel = client.guild.channels.cache.get(user.channel);
+        if (channel) channel.send(`https://twitter.com/${user.name}/status/${tweet.id_str}`);
+      }
+    });
+  } catch (error) {
+    new Promise((resolve) => setTimeout(resolve, 5000));
+    reloadStream();
+  }
 };
 
 reloadStream();
