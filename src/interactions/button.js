@@ -148,7 +148,5 @@ module.exports = {
       );
       await msg.edit({ components: [...msg.components, component] });
     }
-
-    return interaction.deleteReply();
   },
 };

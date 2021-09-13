@@ -233,7 +233,6 @@ module.exports = {
         choices: choices,
       };
       db.push(`/event[]`, event);
-      interaction.deleteReply();
       setEvent(event, eventMsg);
       choices.forEach((c) => eventMsg.react(c.emoji));
     }

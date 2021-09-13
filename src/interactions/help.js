@@ -96,7 +96,6 @@ module.exports = {
    * @param {CommandInteraction} interaction
    */
   execute: async (interaction, args) => {
-    interaction.deleteReply();
     interaction.channel.send({ embeds: [helpEmbed] });
   },
 };

@@ -44,6 +44,5 @@ module.exports = {
         console.log(erreur);
       }
     }
-    interaction.deleteReply();
   },
 };

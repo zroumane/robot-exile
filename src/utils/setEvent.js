@@ -11,8 +11,10 @@ module.exports = (event, msg) => {
   embed.setTitle(`Event : ${event.name}`);
   let date = moment(event.date);
   embed.setDescription(`Date : ${date.format("dddd Do MMMM YYYY, H:mm")}, ${moment().to(date)}.`);
+  let totalMember = event.choices.reduce((total, current) => total + current.members.length)
+  console.log(totalMember);
   embed.fields = event.choices.map((c) => {
-    let name = `${c.emoji} ${c.name} (${c.members.length})`;
+    let name = `${c.emoji} ${c.name} (${c.members.length} - ${c.members.length * 100 / totalMember})`;
     let value = c.members.length == 0 ? "> -" : c.members.map((m) => `> <@${m}>`).join("\n");
     return { name, value };
   });
