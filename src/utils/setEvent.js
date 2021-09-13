@@ -7,15 +7,16 @@ moment.locale("fr");
  * @param {Message} msg
  */
 module.exports = (event, msg) => {
-  let embed = msg.embeds[0] ?? new MessageEmbed();
+  const embed = msg.embeds[0] ?? new MessageEmbed();
   embed.setTitle(`Event : ${event.name}`);
-  let date = moment(event.date);
+  const date = moment(event.date);
   embed.setDescription(`Date : ${date.format("dddd Do MMMM YYYY, H:mm")}, ${moment().to(date)}.`);
-  let totalMember = event.choices.reduce((total, current) => total + current.members.length)
-  console.log(totalMember);
+  const totalMember = event.choices.reduce((total, current) => total + current.members.length, 0);
   embed.fields = event.choices.map((c) => {
-    let name = `${c.emoji} ${c.name} (${c.members.length} - ${c.members.length * 100 / totalMember})`;
-    let value = c.members.length == 0 ? "> -" : c.members.map((m) => `> <@${m}>`).join("\n");
+    const name = `${c.emoji} ${c.name} (${c.members.length} - ${
+      c.members.length == 0 ? "0" : (c.members.length * 100) / totalMember
+    }%)`;
+    const value = c.members.length == 0 ? "> -" : c.members.map((m) => `> <@${m}>`).join("\n");
     return { name, value };
   });
   return msg.edit({ embeds: [embed] });

@@ -40,8 +40,8 @@ module.exports = {
         if (member.user.bot) return;
         const dmChannel = await member.createDM();
         dmChannel.send(message.content);
-      } catch (error) {
-        console.log(erreur);
+      } catch (e) {
+        console.log(e);
       }
     }
   },
