@@ -186,7 +186,7 @@ module.exports = {
         if ((target.length == 0 || target.includes(c.emoji)) && c.members.length > 0)
           str.push(`${c.emoji} : ${c.members.map((m) => `<@${m}>`).join(", ")}`);
       });
-      return interaction.editReply(str.join("\n"));
+      return interaction.channel.send(str.join("\n"));
     }
 
     if (args.get("subcommand") == "list") {
