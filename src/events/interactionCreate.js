@@ -4,8 +4,8 @@ const messageAwait = require("../utils/messageAwait.js");
 
 const messages = {
   mpSend: "Un message privée vous as été envoyé.",
-  roleAdded: "Le role vous a été asigné.",
-  roleRemoved: "Le role vous a été désasigné.",
+  roleAdded: "Le rôle %r vous a été asigné.",
+  roleRemoved: "Le rôle %r vous a été retiré.",
 };
 
 module.exports = {
@@ -62,10 +62,10 @@ module.exports = {
         try {
           if (role.members.get(member.id)) {
             member.roles.remove(role);
-            interaction.reply({ content: messages.roleRemoved, ephemeral: true });
+            interaction.reply({ content: messages.roleRemoved.replace('%r', role.name), ephemeral: true });
           } else {
             member.roles.add(role);
-            interaction.reply({ content: messages.roleAdded, ephemeral: true });
+            interaction.reply({ content: messages.roleAdded.replace('%r', role.name), ephemeral: true });
           }
         } catch (e) {
           console.log(e);
