@@ -3,7 +3,7 @@ const { db, client } = require("../index.js");
 
 const getLive = (presence) => {
   if (!presence?.activities) return null;
-  presence.activities.find((a) => a.type == "STREAMING");
+  return presence.activities.find((a) => a.type == "STREAMING");
 };
 
 (async () => {
