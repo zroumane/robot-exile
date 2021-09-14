@@ -14,7 +14,7 @@ module.exports = (event, msg) => {
   const totalMember = event.choices.reduce((total, current) => total + current.members.length, 0);
   embed.fields = event.choices.map((c) => {
     const name = `${c.emoji} ${c.name} (${c.members.length} - ${
-      c.members.length == 0 ? "0" : (c.members.length * 100) / totalMember
+      c.members.length == 0 ? "0" : Math.round((c.members.length * 1000) / totalMember) / 10
     }%)`;
     const value = c.members.length == 0 ? "> -" : c.members.map((m) => `> <@${m}>`).join("\n");
     return { name, value };

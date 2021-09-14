@@ -4,8 +4,8 @@ const messageAwait = require("../utils/messageAwait.js");
 
 const messages = {
   mpSend: "Un message privée vous as été envoyé.",
-  roleAdded: "Le role vous a été désasigné.",
-  roleRemoved: "Le role vous a été asigné.",
+  roleAdded: "Le role vous a été asigné.",
+  roleRemoved: "Le role vous a été désasigné.",
 };
 
 module.exports = {
