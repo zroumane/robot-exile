@@ -88,8 +88,13 @@ const shutdown = async (e) => {
   events.forEach(async (file) => {
     const name = file.split(".")[0];
     const event = await require(`./events/${file}`);
-    if (event.once) client.once(name, (...args) => event.execute(...args));
-    else client.on(name, (...args) => event.execute(...args));
+    client.on(name, (...args) => {
+        try {
+          event.execute(...args)
+        } catch (error) {
+          console.log("Event error :\n", error);
+        }
+    });
   });
 
   console.log("Connected");

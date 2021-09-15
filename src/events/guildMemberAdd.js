@@ -5,7 +5,6 @@ const Canvas = require("canvas");
 Canvas.registerFont("./assets/tommy.otf", { family: "Tommy" });
 
 module.exports = {
-  once: false,
   execute: async (member) => {
     if (!db.exists("/welcome/channel")) return;
     const channel = client.guild.channels.cache.get(db.getData("/welcome/channel"));

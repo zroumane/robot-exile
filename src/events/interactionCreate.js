@@ -9,7 +9,6 @@ const messages = {
 };
 
 module.exports = {
-  once: false,
   /**
    * @param {Interaction} interaction
    */
@@ -25,14 +24,15 @@ module.exports = {
           });
         } else if (option.value) args.set(option.name, option.value);
       }
-
+      
       await interaction.reply({ content: "Loading...", ephemeral: true });
 
       try {
-        return client.interactions.get(interaction.commandName)?.execute(interaction, args);
+        client.interactions.get(interaction.commandName)?.execute(interaction, args);
       } catch (err) {
-        console.error(err);
+        console.error("Interaction error :\n", err);
       }
+
     } else if (interaction.isButton()) {
       if (interaction.customId.startsWith("sheet")) {
         if (!client.gdoc) return interaction.deferUpdate();

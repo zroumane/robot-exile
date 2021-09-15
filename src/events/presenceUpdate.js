@@ -19,7 +19,6 @@ const getLive = (presence) => {
 })();
 
 module.exports = {
-  once: false,
   /**
    * @param {Presence} oldPresence
    * @param {Presence} newPresence

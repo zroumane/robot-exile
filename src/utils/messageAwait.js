@@ -46,7 +46,7 @@ const messageAwait = async (user, channel, row, questions, choices) => {
         return messageAwait(user, channel, row, questions, choices);
       })
       .catch((e) => {
-        console.log(e);
+        console.log("Message Await error :\n", e);
         if (row.date == 0) row.delete();
         channel.send(dmChannelMessage.countdownEnded);
         client.gdoc.current = client.gdoc.current.filter((u) => u != user.id);

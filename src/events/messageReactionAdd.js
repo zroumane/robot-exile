@@ -2,7 +2,6 @@ const { db, client } = require("../index.js");
 const setEvent = require("../utils/setEvent.js");
 
 module.exports = {
-  once: false,
   execute: async (reaction, user) => {
     if (user == client.user) return;
     const emoji = reaction.emoji.name;
