@@ -3,7 +3,7 @@ const { client } = require("../index.js");
 const messageAwait = require("../utils/messageAwait.js");
 
 const messages = {
-  mpSend: "Un message privée vous as été envoyé.",
+  mpSend: "Un message privée vous a été envoyé.",
   roleAdded: "Le rôle \"%r\" vous a été assigné.",
   roleRemoved: "Le rôle \"%r\" vous a été retiré.",
 };
