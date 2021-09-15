@@ -89,11 +89,11 @@ const shutdown = async (e) => {
     const name = file.split(".")[0];
     const event = await require(`./events/${file}`);
     client.on(name, (...args) => {
-        try {
-          event.execute(...args)
-        } catch (error) {
-          console.log("Event error :\n", error);
-        }
+      try {
+        event(...args);
+      } catch (error) {
+        console.log("Event error :\n", error);
+      }
     });
   });
 
