@@ -4,7 +4,7 @@ const { db } = require("../index.js");
 module.exports = async () => {
   const data = db.getData("/gdoc");
 
-  if (!data.question || !data.choice || !data.docId) return null;
+  if (!data.question || !data.choice || !data.docId) return false;
 
   const doc = new GoogleSpreadsheet(data.docId);
   try {
@@ -21,7 +21,7 @@ module.exports = async () => {
   doc.questions = await doc.sheetsById[data.question].getRows();
   doc.choices = await doc.sheetsById[data.choice].getRows();
 
-  if (!doc.questions || !doc.choices) return null;
+  if (!doc.questions || !doc.choices) return false;
 
   return doc;
 };

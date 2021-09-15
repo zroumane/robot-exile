@@ -6,8 +6,17 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 dotenv.config();
 
+const shutdown = async (e) => {
+  console.log("Deconnecting...");
+  await client?.stream?.close();
+  await client?.connection?.destroy();
+  await client.destroy();
+  if (e) process.exit(0);
+  return;
+};
+
 // Init DB
-let guildId = process.env.ENV == "prod" ? process.env.PROD_GUILD : process.env.DEV_GUILD;
+const guildId = process.env.ENV == "prod" ? process.env.PROD_GUILD : process.env.DEV_GUILD;
 const db = new JsonDB(new Config(`db/${guildId}`, true, true, "/"));
 exports.db = db;
 
@@ -26,30 +35,21 @@ const client = new Client({
 });
 exports.client = client;
 
-const shutdown = async (e) => {
-  console.log("Deconnecting...");
-  await client?.stream?.close();
-  await client?.connection?.destroy();
-  await client.destroy();
-  if (e) process.exit(0);
-  return;
-};
-
 (async () => {
   // Init Twitter
-  exports.T = new Twit({
+  const T = new Twit({
     consumer_key: process.env.CONSUMER,
     consumer_secret: process.env.CONSUMER_SECRET,
     access_token: process.env.ACCESS_TOKEN,
     access_token_secret: process.env.ACCESS_TOKEN_SECRET,
   });
+  exports.T = T;
 
   // Init gdoc
-  client.gdoc = await (await require("./utils/refreshGdoc.js"))();
+  client.gdoc = null;
 
   // Client Login
   await client.login(process.env.ENV == "prod" ? process.env.PROD_TOKEN : process.env.DEV_TOKEN);
-  client.user.setActivity(`/help`, { type: "LISTENING" });
 
   // Init some utils
   await client.guilds.fetch();
@@ -97,6 +97,7 @@ const shutdown = async (e) => {
     });
   });
 
+  client.user.setActivity(`/help`, { type: "LISTENING" });
   console.log("Connected");
 })();
 

@@ -4,6 +4,7 @@ const messageAwait = require("../utils/messageAwait.js");
 
 const messages = {
   mpSend: "Un message privée vous a été envoyé.",
+  already: "Vous avez déja dans une opération en cours.",
   roleAdded: 'Le rôle "%r" vous a été assigné.',
   roleRemoved: 'Le rôle "%r" vous a été retiré.',
 };
@@ -33,13 +34,15 @@ module.exports = async (interaction) => {
     }
   } else if (interaction.isButton()) {
     if (interaction.customId.startsWith("sheet")) {
-      if (!client.gdoc) return interaction.deferUpdate();
+      if (client.gdoc == null) client.gdoc = await (await require("../utils/refreshGdoc.js"))();
+      if (client.gdoc == false) return interaction.deferUpdate();
       const sheetId = interaction.customId.slice(6);
       try {
         let sheet = await client.gdoc.sheetsById[sheetId];
         if (!sheet) throw "no sheet";
         let user = interaction.user;
-        if (client.gdoc.current.find((u) => u == user.id)) return interaction.deferUpdate();
+        if (client.gdoc.current.find((u) => u == user.id))
+          return interaction.reply({ content: messages.already, ephemeral: true });
         let questions = client.gdoc.questions.filter((q) => q.sheet == sheetId);
         let rows = await sheet.getRows();
         let row = rows.find((row) => row.id == user.id) ?? (await sheet.addRow(Array(3 + questions.length).fill(0)));
