@@ -35,13 +35,16 @@ module.exports = {
     if (!message) return interaction.editReply(messages.invalidMessage);
     const role = client.guild.roles.resolve(args.get("role"));
     if (!role) return interaction.editReply(message.invalidRole);
+    let n = 1;
     for (const [k, member] of role.members) {
       try {
         if (member.user.bot) return;
         const dmChannel = await member.createDM();
         dmChannel.send(message.content);
+        console.log(n, member.nickname ?? member.user.username);
+        n++
       } catch (e) {
-        console.log(e);
+        console.log("SendTo Errro :", e);
       }
     }
   },
