@@ -3,7 +3,8 @@ const { client } = require("..");
 
 const messages = {
   invalidMessage: "Ce message est invalide ou n'hexiste pas.",
-  invalidRole: "Ce role est invalide ou n'hexiste pas.",
+  invalidRole: "Ce role est invalide ou n'existe pas.",
+  mpSend: "Le message a été envoyé à %n membre(s).",
 };
 
 module.exports = {
@@ -34,15 +35,18 @@ module.exports = {
     const message = interaction.channel.messages.cache.get(args.get("message"));
     if (!message) return interaction.editReply(messages.invalidMessage);
     const role = client.guild.roles.resolve(args.get("role"));
-    if (!role) return interaction.editReply(message.invalidRole);
+    if (!role) return interaction.editReply(messages.invalidRole);
+    let n = 0;
     for (const [k, member] of role.members) {
       try {
-        if (member.user.bot) return;
+        if (member.user.bot) continue;
         const dmChannel = await member.createDM();
         dmChannel.send(message.content);
+        n++;
       } catch (e) {
         console.log(e);
       }
     }
+    interaction.editReply(messages.mpSend.replace("%n", n));
   },
 };

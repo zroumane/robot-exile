@@ -17,11 +17,11 @@ let stream = null;
 const reloadStream = async () => {
   var twitter = db.getData("/twitter");
   if (twitter.length == 0) return;
-  if (stream) stream.stop();
 
   try {
+    if (stream) stream.stop();
     stream = T.stream("statuses/filter", { follow: twitter.map((u) => u.id) });
-    stream.on("tweet", function (tweet) {
+    stream.on("tweet", (tweet) => {
       if (tweet.in_reply_to_status_id) return;
       if (tweet.retweeted_status) return;
       let user = twitter.find((u) => u.id == tweet?.user?.id_str);
@@ -32,6 +32,7 @@ const reloadStream = async () => {
     });
   } catch (error) {
     new Promise((resolve) => setTimeout(resolve, 5000));
+    client.ownerChannel.send("Twitter error :", error);
     reloadStream();
   }
 };

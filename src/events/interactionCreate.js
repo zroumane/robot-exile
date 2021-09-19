@@ -7,6 +7,7 @@ const messages = {
   already: "Vous avez déja dans une opération en cours.",
   roleAdded: 'Le rôle "%r" vous a été assigné.',
   roleRemoved: 'Le rôle "%r" vous a été retiré.',
+  gdocError: `Une erreur est survenue, contactez <@${process.env.ZEPHYR_ID}>`,
 };
 
 /**
@@ -34,6 +35,7 @@ module.exports = async (interaction) => {
     }
   } else if (interaction.isButton()) {
     if (interaction.customId.startsWith("sheet")) {
+      await interaction.reply({ content: "Loading...", ephemeral: true });
       if (client.gdoc == null) client.gdoc = await (await require("../utils/refreshGdoc.js"))();
       if (client.gdoc == false) return interaction.deferUpdate();
       const sheetId = interaction.customId.slice(6);
@@ -41,8 +43,7 @@ module.exports = async (interaction) => {
         let sheet = await client.gdoc.sheetsById[sheetId];
         if (!sheet) throw "no sheet";
         let user = interaction.user;
-        if (client.gdoc.current.find((u) => u == user.id))
-          return interaction.reply({ content: messages.already, ephemeral: true });
+        if (client.gdoc.current.find((u) => u == user.id)) return await interaction.editReply(messages.already);
         let questions = client.gdoc.questions.filter((q) => q.sheet == sheetId);
         let rows = await sheet.getRows();
         let row = rows.find((row) => row.id == user.id) ?? (await sheet.addRow(Array(3 + questions.length).fill(0)));
@@ -51,10 +52,11 @@ module.exports = async (interaction) => {
         let channel = await user.createDM();
         channel.send(`Bonjour ${user.username} !`);
         client.gdoc.current.push(user.id);
-        interaction.reply({ content: messages.mpSend, ephemeral: true });
         messageAwait(user, channel, row, questions);
+        await interaction.editReply(messages.mpSend);
       } catch (e) {
-        console.log(e);
+        await interaction.editReply(messages.gdocError);
+        console.log("Gdoc button interaction reply :", e);
       }
     } else if (interaction.customId.startsWith("role")) {
       let role = client.guild.roles.resolve(interaction.customId.slice(5));
