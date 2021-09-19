@@ -44,7 +44,7 @@ module.exports = {
         dmChannel.send(message.content);
         n++;
       } catch (e) {
-        console.log(e);
+        console.log("SendTo Errro :", e);
       }
     }
     interaction.editReply(messages.mpSend.replace("%n", n));
