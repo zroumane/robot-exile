@@ -5,10 +5,14 @@ const sendMessage = async (member, message, n) => {
   try {
     if (member.user.bot) return;
     const dmChannel = await member.createDM();
-    dmChannel.send(message);
-    console.log(member.user.username, n);
+    if (dmChannel) {
+      dmChannel.send(message);
+      console.log(member.user.username, n);
+    } else {
+      throw "Cant Send";
+    }
   } catch (e) {
-    console.log("SendTo Errro :", e);
+    console.log("Sendto", member.user.username, e);
   }
 };
 
