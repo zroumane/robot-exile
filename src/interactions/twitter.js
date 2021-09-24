@@ -17,7 +17,7 @@ let stream = null;
 const sendTweet = (tweet) => {
   if (tweet.in_reply_to_status_id) return;
   if (tweet.retweeted_status) return;
-  let user = twitter.find((u) => u.id == tweet?.user?.id_str);
+  let user = db.getData("/twitter").find((u) => u.id == tweet?.user?.id_str);
   if (user) {
     let channel = client.guild.channels.cache.get(user.channel);
     if (channel) channel.send(`https://twitter.com/${user.name}/status/${tweet.id_str}`);
@@ -27,16 +27,14 @@ const sendTweet = (tweet) => {
 const reloadStream = async () => {
   var twitter = db.getData("/twitter");
   if (twitter.length == 0) return;
-
-  try {
-    if (stream) stream.stop();
-    stream = T.stream("statuses/filter", { follow: twitter.map((u) => u.id) });
-    stream.on("tweet", sendTweet);
-  } catch (error) {
+  if (stream) stream.stop();
+  stream = T.stream("statuses/filter", { follow: twitter.map((u) => u.id) });
+  stream.on("tweet", sendTweet);
+  stream.on("error", () => {
     new Promise((resolve) => setTimeout(resolve, 5000));
-    client.ownerChannel.send("Twitter error :", error);
-    reloadStream();
-  }
+    stream.stop();
+    reloadStream;
+  });
 };
 
 reloadStream();
