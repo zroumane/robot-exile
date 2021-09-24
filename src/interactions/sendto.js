@@ -1,6 +1,18 @@
 const { CommandInteraction } = require("discord.js");
 const { client } = require("..");
 
+const sendMessage = (member, message) => {
+  try {
+    if (member.user.bot) continue;
+    const dmChannel = await member.createDM();
+    dmChannel.send(message);
+    console.log("SendTo", member.user.username, n);
+    n++;
+  } catch (e) {
+    console.log("SendTo Errro :", e);
+  }
+}
+
 const messages = {
   invalidMessage: "Ce message est invalide ou n'hexiste pas.",
   invalidRole: "Ce role est invalide ou n'existe pas.",
@@ -37,16 +49,7 @@ module.exports = {
     const role = client.guild.roles.resolve(args.get("role"));
     if (!role) return interaction.editReply(messages.invalidRole);
     let n = 0;
-    for (const [k, member] of role.members) {
-      try {
-        if (member.user.bot) continue;
-        const dmChannel = await member.createDM();
-        dmChannel.send(message.content);
-        n++;
-      } catch (e) {
-        console.log("SendTo Errro :", e);
-      }
-    }
+    for (const [k, member] of role.members) sendMessage(member, message.content)
     interaction.editReply(messages.mpSend.replace("%n", n));
   },
 };
