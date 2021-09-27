@@ -50,13 +50,14 @@ module.exports = async (interaction) => {
         row.id = user.id;
         row.pseudo = user.username;
         let channel = await user.createDM();
-        channel.send(`Bonjour ${user.username} !`);
+        if(!channel) throw `${user.username}`;
+	channel.send(`Bonjour ${user.username} !`);
         client.gdoc.current.push(user.id);
         messageAwait(user, channel, row, questions);
         await interaction.editReply(messages.mpSend);
       } catch (e) {
         await interaction.editReply(messages.gdocError);
-        console.log("Gdoc button interaction reply :", e);
+        console.log("Gdoc button interaction reply error :", e);
       }
     } else if (interaction.customId.startsWith("role")) {
       let role = client.guild.roles.resolve(interaction.customId.slice(5));
