@@ -1,5 +1,5 @@
 const { CommandInteraction, MessageEmbed } = require("discord.js");
-const { db } = require("../index.js");
+const { db, client } = require("../index.js");
 const refreshCommand = require("../utils/refreshCommand.js");
 const removeFromArray = require("../utils/removeFromArray.js");
 const setEvent = require("../utils/setEvent.js");
@@ -181,11 +181,21 @@ module.exports = {
       const index = db.getIndex("/event", id, "id");
       if (index == "-1") return interaction.editReply(messages.eventNotFound);
       const event = db.getData(`/event[${index}]`);
+      const msgEvent = await interaction.channel.messages.fetch(id);
+      if (!msgEvent) return interaction.editReply(messages.eventNotFound);
       let str = [`**Event : ${event.name}**`];
-      event.choices.forEach((c) => {
-        if ((target.length == 0 || target.includes(c.emoji)) && c.members.length > 0)
-          str.push(`${c.emoji} : ${c.members.map((m) => `<@${m}>`).join(", ")}`);
-      });
+      for (const c of event.choices) {
+        const reaction = msgEvent.reactions.resolve(c.emoji);
+        if (!reaction) return;
+        const users = await reaction.users.fetch();
+        users.delete(client.user.id);
+        if ((target.length == 0 || target.includes(c.emoji)) && users.size > 0)
+          str.push(
+            `${c.emoji} : ${Array.from(users.values())
+              .map((u) => `<@${u.id}>`)
+              .join(", ")}`
+          );
+      }
       return interaction.channel.send(str.join("\n"));
     }
 
