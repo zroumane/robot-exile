@@ -16,7 +16,7 @@ module.exports = (event, msg) => {
     const name = `${c.emoji} ${c.name} (${c.members.length} - ${
       c.members.length == 0 ? "0" : Math.round((c.members.length * 1000) / totalMember) / 10
     }%)`;
-    const value = "> " + c.members.length == 0 ? "-" : c.members.map((m) => `<@${m}>`).join(", ");
+    const value = `> ${c.members.length == 0 ? "-" : c.members.map((m) => `<@${m}>`).join(", ")}`;
     return { name, value };
   });
   return msg.edit({ embeds: [embed] });
