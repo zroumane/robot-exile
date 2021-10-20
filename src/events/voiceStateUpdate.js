@@ -1,6 +1,12 @@
+const { VoiceState } = require("discord.js");
 const { db } = require("../index.js");
 const removeFromArray = require("../utils/removeFromArray.js");
 
+/**
+ *
+ * @param {VoiceState} oldState
+ * @param {VoiceState} newState
+ */
 module.exports = async (oldState, newState) => {
   let guild = oldState?.guild ?? newChannel?.guild;
   let member = await guild.members.fetch(oldState.id);
@@ -25,9 +31,7 @@ module.exports = async (oldState, newState) => {
   if (oldChannel && oldChannel.members.size == 0) {
     let result = await removeFromArray("/voice/created", oldChannel.id, "channel");
     if (result) {
-      try {
-        oldChannel.delete();
-      } catch (error) {}
+      oldChannel.delete().catch((e) => {});
     }
   }
 };

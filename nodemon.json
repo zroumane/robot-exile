@@ -1,7 +1,4 @@
 {
-  "ignore": [
-    "databse.json"
-  ],
   "watch": [
     "src/"
   ]

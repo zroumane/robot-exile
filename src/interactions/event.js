@@ -19,16 +19,6 @@ const messages = {
   eventDeleted: "L'événement a bien été supprimé.",
 };
 
-const getEvent = () => {
-  const event = db.getData("/event");
-  return event.map((e) => {
-    return {
-      name: `${e.name}, ${moment().to(e.date)}`,
-      value: e.id,
-    };
-  });
-};
-
 /**
  * @param {Moment} date
  * @param {Map} args
@@ -82,6 +72,22 @@ const getEventOption = (required) => {
 };
 
 const getData = () => {
+  let events = db.getData("/event");
+
+  for (const [i, event] of events.entries()) {
+    if (moment().diff(moment(event.date)) > 0) {
+      removeFromArray("/event", event.id, "id");
+      events.splice(i, 1);
+    }
+  }
+
+  events = events.map((e) => {
+    return {
+      name: `${e.name}, ${moment().to(e.date)}`,
+      value: e.id,
+    };
+  });
+
   return {
     name: "event",
     description: "Command Event",
@@ -102,7 +108,7 @@ const getData = () => {
             description: "Event à appeler.",
             type: "STRING",
             required: true,
-            choices: getEvent(),
+            choices: events,
           },
           {
             name: "target",
@@ -142,7 +148,7 @@ const getData = () => {
             description: "Identifiant de l'event à supprimer",
             type: "STRING",
             required: true,
-            choices: getEvent(),
+            choices: events,
           },
         ],
       },
@@ -156,7 +162,7 @@ const getData = () => {
             description: "Identifiant de l'event à supprimer",
             type: "STRING",
             required: true,
-            choices: getEvent(),
+            choices: events,
           },
           ...getEventOption(false),
         ],
@@ -232,7 +238,7 @@ module.exports = {
       if (choices.length > 10 || choices.length != emojis.length) return interaction.editReply(messages.maxChoice);
 
       choices = choices.map((c, i) => {
-        return { name: c, emoji: emojis[i].trim(), members: [] };
+        return { name: c, emoji: emojis[i].trim() };
       });
 
       let eventMsg = await interaction.channel.send({ embeds: [new MessageEmbed({ title: "..." })] });

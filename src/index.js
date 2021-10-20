@@ -32,6 +32,7 @@ const client = new Client({
     Intents.FLAGS.GUILD_PRESENCES,
   ],
   partials: ["MESSAGE", "CHANNEL", "REACTION"],
+  restRequestTimeout: 30000,
 });
 exports.client = client;
 
