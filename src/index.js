@@ -6,6 +6,8 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 dotenv.config();
 
+process.env.TZ = 'Europe/Paris'
+
 const shutdown = async (e) => {
   console.log("Deconnecting...");
   await client?.stream?.close();
