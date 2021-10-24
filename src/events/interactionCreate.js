@@ -14,7 +14,7 @@ const messages = {
  * @param {Interaction} interaction
  */
 module.exports = async (interaction) => {
-  if (interaction.isCommand()) {
+  if (interaction.isCommand() || interaction.isContextMenu()) {
     const args = new Map();
 
     for (let option of interaction.options.data) {
@@ -50,8 +50,8 @@ module.exports = async (interaction) => {
         row.id = user.id;
         row.pseudo = user.username;
         let channel = await user.createDM();
-        if(!channel) throw `${user.username}`;
-	channel.send(`Bonjour ${user.username} !`);
+        if (!channel) throw `${user.username}`;
+        channel.send(`Bonjour ${user.username} !`);
         client.gdoc.current.push(user.id);
         messageAwait(user, channel, row, questions);
         await interaction.editReply(messages.mpSend);

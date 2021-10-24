@@ -7,7 +7,6 @@ const sendMessage = async (member, message, n) => {
     const dmChannel = await member.createDM();
     if (dmChannel) {
       dmChannel.send(message);
-      console.log(member.user.username, n);
     } else {
       throw "Cant Send";
     }
