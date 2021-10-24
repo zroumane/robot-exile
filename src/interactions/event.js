@@ -68,6 +68,12 @@ const getEventOption = (required) => {
       type: "INTEGER",
       required: required,
     },
+    {
+      name: "multiple",
+      description: "Autoriser le multi vote.",
+      type: "BOOLEAN",
+      required: required,
+    },
   ];
 };
 
@@ -245,6 +251,7 @@ module.exports = {
       let event = {
         id: eventMsg.id,
         name: args.get("name"),
+        multiple: args.get("multiple"),
         date: date,
         choices: choices,
       };
@@ -256,20 +263,26 @@ module.exports = {
     if (args.get("subcommand") == "update") {
       const id = args.get("event");
       const index = db.getIndex("/event", id, "id");
-      const msgEvent = await interaction.channel.messages.fetch(id);
+      interaction.channel.messages
+        .fetch(id)
+        .then((msgEvent) => {
+          if (index == "-1" || !msgEvent) throw "error";
+          let event = db.getData(`/event[${index}]`);
+          if (args.get("name")) event.name = args.get("name");
+          if (args.get("multiple") != null) event.multiple = args.get("multiple");
 
-      if (index == "-1" || !msgEvent) return interaction.editReply(messages.eventNotFound);
+          const date = getDate(moment(event.date), args);
+          if (!date) return interaction.editReply(messages.wrongDateFormat);
+          else event.date = date;
 
-      let event = db.getData(`/event[${index}]`);
-      if (args.get("name")) event.name = args.get("name");
-
-      const date = getDate(moment(event.date), args);
-      if (!date) return interaction.editReply(messages.wrongDateFormat);
-      else event.date = date;
-
-      db.push(`/event[${id}]/`, event);
-      setEvent(event, msgEvent);
-      interaction.editReply(messages.eventUpdated);
+          db.push(`/event[${id}]/`, event);
+          setEvent(event, msgEvent);
+          interaction.editReply(messages.eventUpdated);
+        })
+        .catch((e) => {
+          if (index != "-1") db.delete(`/event[${index}]`);
+          return interaction.editReply(messages.eventNotFound);
+        });
     }
 
     return refreshCommand(interaction.command, getData());

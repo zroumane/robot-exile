@@ -10,7 +10,7 @@ module.exports = async (reaction, user) => {
   const event = db.getData(`/event[${index}]`);
   reactions.forEach(async (r, e) => {
     let choiceIndex = event.choices.findIndex((c) => c.emoji == e);
-    if (choiceIndex < 0 || e != reaction.emoji.name) {
+    if (choiceIndex < 0 || (e != reaction.emoji.name && !event.multiple)) {
       await r.users.fetch();
       return r.users.remove(user.id);
     }
