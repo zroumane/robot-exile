@@ -80,12 +80,12 @@ const getEventOption = (required) => {
 const getData = () => {
   let events = db.getData("/event");
 
-  for (const [i, event] of events.entries()) {
-    if (moment().diff(moment(event.date)) > 0) {
-      removeFromArray("/event", event.id, "id");
-      events.splice(i, 1);
-    }
-  }
+  // for (const [i, event] of events.entries()) {
+  //   if (moment().diff(moment(event.date)) > 0) {
+  //     removeFromArray("/event", event.id, "id");
+  //     events.splice(i, 1);
+  //   }
+  // }
 
   events = events.map((e) => {
     return {
