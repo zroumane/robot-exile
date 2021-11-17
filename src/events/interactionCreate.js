@@ -11,6 +11,7 @@ const messages = {
   suggestions: `Vous avez 5 min pour m'envoyer votre suggestion. (. pour annuler)`,
   suggestSend: `Merci, la suggestion a été transmise.`,
   countdownEnded: "Le temps d'attente est écoulé, l'opperation est annulé.",
+  operationEnded: "L'opération est terminée.",
 };
 
 /**
@@ -93,7 +94,12 @@ module.exports = async (interaction) => {
         dmChannel
           .awaitMessages({ filter: (m) => m.author == interaction.user, max: 1, time: 60 * 1000 * 5 })
           .then((collector) => {
-            channel.send(`Suggestion de <@${user.id}> (${user.username}):\n> ${collector.first().content}`);
+            const content = collector.first().content;
+            if (content == ".") dmChannel.send(messages.operationEnded);
+            else {
+              channel.send(`Suggestion de <@${user.id}> (${user.username}):\n> ${collector.first().content}`);
+              dmChannel.send(messages.operationEnded);
+            }
             client.current = client.current.filter((u) => u != user.id);
           })
           .catch((e) => {
