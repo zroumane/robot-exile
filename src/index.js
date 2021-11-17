@@ -6,7 +6,7 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 dotenv.config();
 
-process.env.TZ = 'Europe/Paris'
+process.env.TZ = "Europe/Paris";
 
 const shutdown = async (e) => {
   console.log("Deconnecting...");
@@ -50,6 +50,8 @@ exports.client = client;
 
   // Init gdoc
   client.gdoc = null;
+
+  client.current = [];
 
   // Client Login
   await client.login(process.env.ENV == "prod" ? process.env.PROD_TOKEN : process.env.DEV_TOKEN);

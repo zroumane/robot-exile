@@ -5,11 +5,21 @@ const messages = {
   noMessage: "Ce message du bot n'existe pas dans ce salon.",
   noGdoc: "La configuration actuelle du gdoc renvoie une erreur (`/gdoc`)",
   invalidUrl: "L'url est invalide",
+  process: "La modification a été apporté.",
+  invalidChannel: "Le salon spécifié n'est pas de type textuel.",
+};
+
+const addButton = async (msg, type, args, id) => {
+  let component = new MessageActionRow().addComponents(
+    new MessageButton().setLabel(args.get("label")).setStyle(args.get("color") ?? "PRIMARY")
+  );
+  if (type == "url") component.components[0].setURL(args.get("url")).setStyle("LINK");
+  else component.components[0].setCustomId(type + ":" + id);
+  await msg.edit({ components: [...msg.components, component] });
 };
 
 const pattern = RegExp(
-  "(https?:\\/\\/)?((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|((\\d{1,3}\\.){3}\\d{1,3}))(\\:\\d+)?(\\/[-a-z\\d%_.~+@]*)*(\\?[;&a-z\\d%_.~+=-]*)?(\\#[-a-z\\d_]*)?$",
-  "i"
+  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)/
 );
 
 const getOptions = (link) => {
@@ -97,6 +107,20 @@ module.exports = {
           ...getOptions(),
         ],
       },
+      {
+        name: "suggestion",
+        description: "Ajouter un bouton suggestion.",
+        type: 1,
+        options: [
+          {
+            name: "channel",
+            description: "Salon ou sont envoyé les suggestions.",
+            required: true,
+            type: "CHANNEL",
+          },
+          ...getOptions(),
+        ],
+      },
     ],
   },
   /**
@@ -104,6 +128,7 @@ module.exports = {
    */
   execute: async (interaction, args) => {
     let msg;
+    let isNew = false;
 
     if (args.get("message")) {
       msg = await interaction.channel.messages.fetch(args.get("message"));
@@ -111,42 +136,35 @@ module.exports = {
       if (args.get("content")) await msg.edit(args.get("content"));
     }
 
-    if (!msg) msg = await interaction.channel.send(args.get("content") ?? "-");
+    if (!msg) {
+      msg = await interaction.channel.send(args.get("content") ?? "...");
+      isNew = true;
+    }
 
     if (args.get("subcommand") == "link") {
       if (!pattern.test(args.get("url"))) {
-        msg.delete();
+        if (isNew) msg.delete();
         return interaction.editReply(messages.invalidUrl);
       }
-
-      let component = new MessageActionRow().addComponents(
-        new MessageButton().setURL(args.get("url")).setLabel(args.get("label")).setStyle("LINK")
-      );
-      await msg.edit({ components: [...msg.components, component] });
+      addButton(msg, "url", args);
     }
 
     if (args.get("subcommand") == "gdoc") {
       if (!client.gdoc) {
-        msg.delete();
+        if (isNew) msg.delete();
         return interaction.editReply(messages.noGdoc);
       }
-      let component = new MessageActionRow().addComponents(
-        new MessageButton()
-          .setCustomId("sheet:" + args.get("sheet"))
-          .setLabel(args.get("label"))
-          .setStyle(args.get("color") ?? "PRIMARY")
-      );
-      await msg.edit({ components: [...msg.components, component] });
+      addButton(msg, "sheet", args, args.get("sheet"));
     }
 
-    if (args.get("subcommand") == "role") {
-      let component = new MessageActionRow().addComponents(
-        new MessageButton()
-          .setCustomId("role:" + args.get("role"))
-          .setLabel(args.get("label"))
-          .setStyle(args.get("color") ?? "PRIMARY")
-      );
-      await msg.edit({ components: [...msg.components, component] });
+    if (args.get("subcommand") == "role") addButton(msg, "role", args, args.get("role"));
+
+    if (args.get("subcommand") == "suggestion") {
+      let channel = interaction.options.getChannel("channel");
+      if (channel.type != "GUILD_TEXT") return interaction.editReply(messages.invalidChannel);
+      addButton(msg, "suggestion", args, args.get("channel"));
     }
+
+    return interaction.editReply(messages.process);
   },
 };

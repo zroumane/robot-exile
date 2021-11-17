@@ -20,7 +20,7 @@ const messageAwait = async (user, channel, row, questions, choices) => {
   if (!questions.length) {
     row.date = moment().format("DD-MM-YY HH:mm");
     channel.send(dmChannelMessage.operationEnded);
-    client.gdoc.current = client.gdoc.current.filter((u) => u != user.id);
+    client.current = client.current.filter((u) => u != user.id);
     await row.save();
   } else {
     if (questions[0].prefix) channel.send(questions[0].prefix.split(";").join("\n"));
@@ -49,7 +49,7 @@ const messageAwait = async (user, channel, row, questions, choices) => {
         console.log("Message Await error :\n", e);
         if (row.date == 0) row.delete();
         channel.send(dmChannelMessage.countdownEnded);
-        client.gdoc.current = client.gdoc.current.filter((u) => u != user.id);
+        client.current = client.current.filter((u) => u != user.id);
       });
   }
 };
